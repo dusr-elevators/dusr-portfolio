@@ -1,0 +1,12 @@
+.git
+node_modules
+frontend/node_modules
+backend/.venv
+dist
+frontend/dist
+backend/__pycache__
+backend/*/__pycache__
+backend/*/migrations/__pycache__
+backend/staticfiles
+*.log
+.env

@@ -1,0 +1,1 @@
+Use django-modeltranslation when translating fields in modles (but don't delete the original fields) to not loose the data

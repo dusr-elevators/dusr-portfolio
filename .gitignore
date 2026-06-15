@@ -1,4 +1,9 @@
 node_modules/
+.venv/
+backend/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
 build/
 dist/
 coverage/
@@ -6,3 +11,14 @@ coverage/
 *.log
 .env*
 !.env.example
+!**/.env.example
+
+# Django generated / runtime artifacts
+backend/staticfiles/
+backend/db.sqlite3
+
+# User-uploaded content (PII)
+backend/media/uploads/
+backend/media/submissions/
+backend/media/cvs/
+backend/media/reports/

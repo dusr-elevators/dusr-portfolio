@@ -1,0 +1,7 @@
+__pycache__
+*/__pycache__
+*/migrations/__pycache__
+staticfiles
+*.pyc
+.env
+db.sqlite3

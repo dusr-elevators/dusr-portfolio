@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: goldenMeatPortfolio.settings.prod
+      DJANGO_ALLOWED_HOSTS: dusr.sa,www.dusr.sa,82.223.81.234
+      DJANGO_CSRF_TRUSTED_ORIGINS: https://dusr.sa,https://www.dusr.sa,http://82.223.81.234
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY before starting production}
+    volumes:
+      - backend_media:/app/media
+      - backend_staticfiles:/app/staticfiles
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  backend_media:
+  backend_staticfiles:
