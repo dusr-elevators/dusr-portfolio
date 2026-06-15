@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&family=Noto+Sans+Arabic:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-secondary-container: #46494e;
+  --color-on-background: #e5e2e1;
+  --color-primary-fixed: #e5e2e1;
+  --color-surface-bright: #393939;
+  --color-on-surface-variant: #c4c7c7;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-tertiary-fixed-dim: #cac6c3;
+  --color-on-error-container: #ffdad6;
+  --color-on-secondary: #2d3135;
+  --color-on-tertiary: #32302f;
+  --color-on-tertiary-container: #807d7b;
+  --color-tertiary: #cac6c3;
+  --color-on-secondary-fixed-variant: #44474b;
+  --color-error-container: #93000a;
+  --color-secondary: #c4c6cc;
+  --color-on-tertiary-fixed: #1c1b1a;
+  --color-tertiary-container: #131211;
+  --color-inverse-surface: #e5e2e1;
+  --color-secondary-fixed-dim: #c4c6cc;
+  --color-background: #131313;
+  --color-outline-variant: #444748;
+  --color-on-primary-fixed: #1c1b1b;
+  --color-on-secondary-container: #b6b8be;
+  --color-on-surface: #e5e2e1;
+  --color-surface: #131313;
+  --color-inverse-primary: #5f5e5e;
+  --color-surface-variant: #353535;
+  --color-primary: #c8c6c5;
+  --color-surface-container-highest: #353535;
+  --color-on-primary: #313030;
+  --color-outline: #8e9192;
+  --color-inverse-on-surface: #303030;
+  --color-surface-container-high: #2a2a2a;
+  --color-on-secondary-fixed: #181c20;
+  --color-primary-container: #121212;
+  --color-surface-tint: #c8c6c5;
+  --color-surface-dim: #131313;
+  --color-on-primary-container: #7e7d7d;
+  --color-surface-container: #202020;
+  --color-error: #ffb4ab;
+  --color-primary-fixed-dim: #c8c6c5;
+  --color-tertiary-fixed: #e6e1df;
+  --color-surface-container-low: #1b1b1c;
+  --color-on-primary-fixed-variant: #474646;
+  --color-on-tertiary-fixed-variant: #484645;
+  --color-secondary-fixed: #e0e2e8;
+  --color-safety-orange: #FF5722;
+
+  --font-sans: "Noto Sans Arabic", "Inter", sans-serif;
+  --font-display: "Noto Sans Arabic", "Geist", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --spacing-margin-mobile: 16px;
+  --spacing-unit: 8px;
+  --spacing-margin-desktop: 64px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1440px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  overflow-x: hidden;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: #131313;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+
+.dotted-leader {
+  border-bottom: 1px dotted var(--color-outline-variant);
+  flex-grow: 1;
+  margin: 0 8px;
+  position: relative;
+  top: -4px;
+}
