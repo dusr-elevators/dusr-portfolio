@@ -10,6 +10,7 @@ admin.site.index_title = 'Portfolio Management'
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):
     list_display = (
+        'reference',
         'first_name',
         'last_name',
         'email',
@@ -26,9 +27,15 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
         'project_engineering_department',
         'message',
     )
-    readonly_fields = ('created_at',)
+    readonly_fields = ('reference', 'created_at')
     ordering = ('-created_at',)
     date_hierarchy = 'created_at'
+
+    @admin.display(description='Estimate Transaction Ref')
+    def reference(self, obj):
+        if obj.pk is None:
+            return '-'
+        return f'DUSR-REQ-{obj.pk:06d}'
 
 
 @admin.register(SEOKeyword)
