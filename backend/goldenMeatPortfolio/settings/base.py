@@ -183,6 +183,10 @@ CKEDITOR_5_CONFIGS = {
 }
 
 REST_FRAMEWORK = {
+    # Public API consumed by the React frontend; no endpoint inspects the
+    # authenticated user. Disabling session auth avoids CSRF rejections on
+    # anonymous writes when a staff user is also logged into the admin.
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
