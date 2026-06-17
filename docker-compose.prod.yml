@@ -7,10 +7,12 @@ services:
       DJANGO_SETTINGS_MODULE: goldenMeatPortfolio.settings.prod
       DJANGO_ALLOWED_HOSTS: dusr.sa,www.dusr.sa,82.223.81.234
       DJANGO_CSRF_TRUSTED_ORIGINS: https://dusr.sa,https://www.dusr.sa,http://82.223.81.234
+      DJANGO_DB_PATH: /app/data/db.sqlite3
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY before starting production}
     volumes:
       - backend_media:/app/media
       - backend_staticfiles:/app/staticfiles
+      - backend_data:/app/data
 
   frontend:
     build:
@@ -20,7 +22,20 @@ services:
       - backend
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
 
 volumes:
   backend_media:
   backend_staticfiles:
+  backend_data:
+  certbot_conf:
+  certbot_www:
