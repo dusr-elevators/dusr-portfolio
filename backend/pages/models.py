@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class Category(models.Model):
@@ -174,7 +174,7 @@ class HeroImage(models.Model):
 
 class TermsOfService(models.Model):
     title = models.CharField(_('Title'), max_length=200)
-    content = RichTextField(_('Content'))
+    content = CKEditor5Field(_('Content'), config_name='default')
     last_updated = models.DateTimeField(_('Last Updated'), auto_now=True)
 
     class Meta:
@@ -188,7 +188,7 @@ class TermsOfService(models.Model):
 
 class PrivacyPolicy(models.Model):
     title = models.CharField(_('Title'), max_length=200)
-    content = RichTextField(_('Content'))
+    content = CKEditor5Field(_('Content'), config_name='default')
     last_updated = models.DateTimeField(_('Last Updated'), auto_now=True)
 
     class Meta:

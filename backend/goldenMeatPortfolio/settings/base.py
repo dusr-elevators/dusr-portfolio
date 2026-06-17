@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'pages',
     'financial',
     'media_app',
-    'ckeditor',
+    'django_ckeditor_5',
     'rest_framework',
     'drf_spectacular',
 ]
@@ -110,6 +110,9 @@ LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
 
+# Allow modeltranslation to build per-language columns for CKEditor 5 fields.
+MODELTRANSLATION_CUSTOM_FIELDS = ('CKEditor5Field',)
+
 TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_L10N = True
@@ -147,13 +150,35 @@ DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Dusr <support@
 CONTACT_EMAIL = os.environ.get('DJANGO_CONTACT_EMAIL', 'support@dusr.sa')
 
 
-# CKEditor Configuration
-CKEDITOR_UPLOAD_PATH = 'uploads/'
-CKEDITOR_CONFIGS = {
+# CKEditor 5 Configuration
+CKEDITOR_5_UPLOAD_PATH = 'uploads/'
+
+# Restrict who may upload files through CKEditor 5 to authenticated staff.
+CKEDITOR_5_FILE_UPLOAD_PERMISSION = 'staff'
+
+CKEDITOR_5_CONFIGS = {
     'default': {
-        'toolbar': 'full',
         'height': 300,
         'width': '100%',
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'link', '|',
+            'bulletedList', 'numberedList', 'blockQuote', '|',
+            'insertImage', 'insertTable', '|',
+            'undo', 'redo',
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative', '|',
+                'imageStyle:alignLeft', 'imageStyle:alignRight', 'imageStyle:alignCenter',
+            ],
+            'styles': ['full', 'side', 'alignLeft', 'alignRight', 'alignCenter'],
+        },
+        'table': {
+            'contentToolbar': [
+                'tableColumn', 'tableRow', 'mergeTableCells',
+            ],
+        },
     },
 }
 

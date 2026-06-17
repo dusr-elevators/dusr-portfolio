@@ -2,7 +2,7 @@ import os
 from uuid import uuid4
 
 from django.db import models
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class JobLocation(models.Model):
@@ -47,7 +47,7 @@ class EmploymentStatus(models.Model):
 
 class Job(models.Model):
     title = models.CharField(max_length=200)
-    description = RichTextField()
+    description = CKEditor5Field(config_name='default')
     location = models.ForeignKey(JobLocation, on_delete=models.CASCADE)
     role = models.ForeignKey(JobRole, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
