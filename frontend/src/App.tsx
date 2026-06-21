@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import BentoServices from './components/BentoServices';
@@ -12,9 +12,18 @@ import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import { motion } from 'motion/react';
 import { ShieldCheck, Users, Gauge, Zap } from 'lucide-react';
+import { pathForLang, type Lang } from './lib/lang';
 
-export default function App() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+export default function App({ initialLang = 'ar' }: { initialLang?: Lang } = {}) {
+  // Language is fixed per URL ("/" = Arabic, "/en/" = English); switching
+  // navigates to the other language's prerendered page.
+  const lang = initialLang;
+
+  const setLang = (next: Lang) => {
+    if (next !== lang) {
+      window.location.assign(pathForLang(next));
+    }
+  };
 
   useEffect(() => {
     document.documentElement.lang = lang;
