@@ -3,33 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect } from 'react';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import BentoServices from './components/BentoServices';
-import SafetyDiagnostic from './components/SafetyDiagnostic';
-import ContactForm from './components/ContactForm';
-import Footer from './components/Footer';
-import { motion } from 'motion/react';
-import { ShieldCheck, Users, Gauge, Zap } from 'lucide-react';
-import { pathForLang, type Lang } from './lib/lang';
+'use client';
 
-export default function App({ initialLang = 'ar' }: { initialLang?: Lang } = {}) {
-  // Language is fixed per URL ("/" = Arabic, "/en/" = English); switching
-  // navigates to the other language's prerendered page.
-  const lang = initialLang;
+import { useRouter } from 'next/navigation';
+import { Users, Gauge } from 'lucide-react';
+import { pathForLang, type Lang } from '@/lib/lang';
+import Header from './Header';
+import Hero from './Hero';
+import BentoServices from './BentoServices';
+import SafetyDiagnostic from './SafetyDiagnostic';
+import ContactForm from './ContactForm';
+import Footer from './Footer';
 
+export default function Home({ lang }: { lang: Lang }) {
+  const router = useRouter();
+
+  // Switching language navigates to the other language's URL (its own page).
   const setLang = (next: Lang) => {
-    if (next !== lang) {
-      window.location.assign(pathForLang(next));
-    }
+    if (next !== lang) router.push(pathForLang(next));
   };
-
-  useEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.classList.add('dark');
-  }, [lang]);
 
   const handleScrollToContact = () => {
     const contactSection = document.getElementById('contact');
@@ -40,19 +32,12 @@ export default function App({ initialLang = 'ar' }: { initialLang?: Lang } = {})
 
   return (
     <div className="bg-[#131313] min-h-screen text-[#e5e2e1] selection:bg-[#FF5722] selection:text-white custom-scroll transition-colors duration-300">
-      
+
       {/* 1. Complete top navigation block */}
-      <Header
-        lang={lang}
-        setLang={setLang}
-        onEstimateClick={handleScrollToContact}
-      />
+      <Header lang={lang} setLang={setLang} onEstimateClick={handleScrollToContact} />
 
       {/* 2. Stunning immersive landing segment */}
-      <Hero
-        lang={lang}
-        onStartClick={handleScrollToContact}
-      />
+      <Hero lang={lang} onStartClick={handleScrollToContact} />
 
       {/* 3. Bento grid of services & active calculators */}
       <BentoServices lang={lang} />
@@ -63,7 +48,7 @@ export default function App({ initialLang = 'ar' }: { initialLang?: Lang } = {})
       {/* 5. About Section / "عن دسر" - Interactive statistics showcase */}
       <section className="py-24 md:py-32 px-6 md:px-16 bg-[#18181a] border-b border-[#444748]/20" id="about">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          
+
           {/* Text column (takes 7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <span className="font-mono text-xs text-[#FF5722] font-semibold uppercase tracking-widest block">

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Factory, Zap, ShieldCheck, RefreshCw, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -56,7 +58,7 @@ export default function BentoServices({ lang }: BentoServicesProps) {
   return (
     <section className="py-24 md:py-32 px-6 md:px-16 bg-[#131313]" id="services">
       {/* Section Header */}
-      <div 
+      <div
         className={`mb-20 border-[#FF5722] pr-8 ${lang === 'ar' ? 'border-r-4 text-right' : 'border-l-4 text-left border-r-0 pl-8 pr-0'}`}
       >
         <span className="font-mono text-xs uppercase tracking-widest text-[#FF5722] font-semibold">
@@ -68,10 +70,11 @@ export default function BentoServices({ lang }: BentoServicesProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-        
+
         {/* Commercial - Large Bento 8-column layout */}
         <div className="md:col-span-8 group relative overflow-hidden bg-[#202020] border border-[#444748]/50 min-h-[400px] rounded-2xl flex flex-col justify-end p-8 md:p-12 hover:border-[#FF5722]/50 transition-all duration-300">
           <div className="absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-700">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-all duration-500"
               alt="High density commercial workspace elevator glass view"
@@ -179,7 +182,7 @@ export default function BentoServices({ lang }: BentoServicesProps) {
         {/* Modernization and Energetic savings - 8 Column Layout with Sliders */}
         <div className="md:col-span-8 bg-[#2a2a2a] border border-[#444748]/50 min-h-[400px] rounded-2xl p-8 md:p-12 flex flex-col justify-between hover:border-[#FF5722]/50 transition-all duration-300">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
-            
+
             {/* Left Column Description */}
             <div>
               <div className="flex items-center gap-2 mb-4">

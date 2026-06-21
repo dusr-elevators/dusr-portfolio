@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Mail, PhoneCall, MapPin, Send, CheckCircle2, RefreshCw } from 'lucide-react';
+import { PhoneCall, MapPin, Send, CheckCircle2, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ContactFormProps {
@@ -55,7 +57,7 @@ export default function ContactForm({ lang }: ContactFormProps) {
     setError('');
 
     const { firstName, lastName } = splitName(formData.name);
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
+    const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/contact-submissions/`, {
@@ -112,7 +114,7 @@ export default function ContactForm({ lang }: ContactFormProps) {
   return (
     <section className="py-24 md:py-32 px-6 md:px-16 bg-[#131111]" id="contact">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
-        
+
         {/* Info Column (takes 5 cols) */}
         <div className="lg:col-span-5 flex flex-col justify-between">
           <div>
@@ -328,7 +330,7 @@ export default function ContactForm({ lang }: ContactFormProps) {
                 <div className="w-20 h-20 bg-emerald-500/25 border border-emerald-400 text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <h3 className="font-display text-2xl font-black text-emerald-400">
                     {lang === 'ar' ? 'تم استلام كشف الاستفسار وتأمين الاتصال' : 'Technical Submission Safe'}

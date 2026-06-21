@@ -13,7 +13,7 @@ export default function SafetyDiagnostic({ lang }: SafetyDiagnosticProps) {
   return (
     <section className="py-24 md:py-32 px-6 md:px-16 bg-[#0e0e0e] border-t border-b border-[#444748]/30" id="maintenance">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-        
+
         {/* Right side / Left side description depending on RTL */}
         <div className="space-y-8">
           <span className="font-mono text-xs text-[#FF5722] font-semibold uppercase tracking-widest bg-[#FF5722]/5 border border-[#FF5722]/20 px-3.5 py-1 rounded-full inline-block">
@@ -61,7 +61,7 @@ export default function SafetyDiagnostic({ lang }: SafetyDiagnosticProps) {
 
           {/* Dotted parameters listings */}
           <div className="space-y-6">
-            
+
             {/* 1. Tension */}
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="font-sans font-medium text-neutral-300">

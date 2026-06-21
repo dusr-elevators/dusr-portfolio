@@ -14,16 +14,28 @@ services:
       - backend_staticfiles:/app/staticfiles
       - backend_data:/app/data
 
-  frontend:
+  web:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: runner
     depends_on:
+      - backend
+    environment:
+      # Same-origin in the browser (nginx serves /api); internal URL for SSR/ISR.
+      NEXT_PUBLIC_API_BASE_URL: ""
+      API_INTERNAL_URL: http://backend:8000
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - web
       - backend
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
 

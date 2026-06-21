@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { useState } from 'react';
-import { Share2, Globe, ArrowUp, Shield } from 'lucide-react';
+import { Share2, ArrowUp } from 'lucide-react';
 import Logo from './Logo';
 
 interface FooterProps {
@@ -31,7 +33,7 @@ export default function Footer({ lang }: FooterProps) {
 
   return (
     <footer className="w-full px-6 md:px-16 py-12 md:py-16 grid grid-cols-1 md:grid-cols-12 gap-12 bg-[#0e0e0e] border-t border-[#444748]/30">
-      
+
       {/* 1. Brand statement block */}
       <div className="md:col-span-6 space-y-6">
         <Logo lang={lang} />
@@ -58,7 +60,7 @@ export default function Footer({ lang }: FooterProps) {
           >
             <ArrowUp className="w-4 h-4" />
           </button>
-          
+
           <button
             title={lang === 'ar' ? 'نسخ رابط الموقع ومشاركته' : 'Share current portal link'}
             onClick={handleShare}
@@ -76,7 +78,7 @@ export default function Footer({ lang }: FooterProps) {
             </>
           ) : (
             <>
-              © {new Date().getFullYear()} Dusr Elevators. All Rights Reserved.
+              © 2026 Dusr Elevators. All Rights Reserved.
             </>
           )}
         </p>

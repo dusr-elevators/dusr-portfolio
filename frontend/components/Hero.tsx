@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { motion } from 'motion/react';
 import { ArrowDown } from 'lucide-react';
 
@@ -16,6 +18,7 @@ export default function Hero({ onStartClick, lang }: HeroProps) {
     <section className="relative h-screen flex items-center px-6 md:px-16 overflow-hidden">
       {/* Background Graphic Element & Parallax Image */}
       <div className="absolute inset-0 z-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-1000 scale-105"
           alt={
@@ -68,7 +71,7 @@ export default function Hero({ onStartClick, lang }: HeroProps) {
           className="font-sans text-base sm:text-lg md:text-xl text-[#c4c7c7] max-w-xl mb-12 leading-relaxed"
         >
           {lang === 'ar'
-            ? 'إعادة تعريف هندسة المصاعد من خلال بساطة التصميم المعماري والإتقان الميكانيكي. نصمم ونركب أكثر أنظمة المصاعد موثوقية وفخامة في العالم.'
+            ? 'إعادة تعريف هندسة المصاعد من خلال بساطة التصميم المعماري والإتقان الميكانيكي. نصمم ونركّب أكثر أنظمة المصاعد موثوقية وفخامة في العالم.'
             : 'Redefining vertical transport through minimalist architectural elegance and strict mechanical mastery. We engineer and install the worlds most robust and luxurious systems.'}
         </motion.p>
 
@@ -95,7 +98,7 @@ export default function Hero({ onStartClick, lang }: HeroProps) {
       </div>
 
       {/* Decorative vertical elevator shaft indicator in coordinates */}
-      <div 
+      <div
         dir="ltr"
         className={`absolute bottom-16 sm:bottom-24 flex flex-col items-center gap-4 hidden sm:flex ${
           lang === 'ar' ? 'left-6 md:left-16' : 'right-6 md:right-16'
