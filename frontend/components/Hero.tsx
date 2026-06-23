@@ -43,6 +43,15 @@ export default function Hero({ onStartClick, lang }: HeroProps) {
           className="w-1 bg-[#FF5722] h-20 md:h-24 mb-8 origin-top rounded-full hidden sm:block"
         ></motion.div>
 
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="font-sans text-xs sm:text-sm uppercase tracking-widest text-[#FF5722] mb-4 font-semibold"
+        >
+          {lang === 'ar' ? 'الاسم الرائد في أنظمة المصاعد' : 'The Leading Name in Elevator Systems'}
+        </motion.p>
+
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
