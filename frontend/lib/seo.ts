@@ -14,20 +14,20 @@ const HREFLANG = {
 
 const TEXT: Record<Lang, { title: string; description: string; ogDescription: string; siteName: string; ogLocale: string }> = {
   ar: {
-    title: 'دسر | أنظمة مصاعد دقيقة',
+    title: 'شركة دسر للمصاعد | تركيب وصيانة المصاعد في السعودية',
     description:
-      'دسر لأنظمة المصاعد — هندسة دقيقة وتصميم معماري فاخر. نصمم ونركّب أكثر أنظمة المصاعد موثوقية وأماناً في المملكة العربية السعودية، مع دعم فني ومراقبة على مدار الساعة.',
+      'دسر شركة مصاعد في السعودية متخصصة في تركيب وصيانة وإصلاح المصاعد — مصاعد منزلية وتجارية وفاخرة في الرياض وجميع المناطق، بأعلى معايير الجودة والأمان ودعم فني على مدار الساعة.',
     ogDescription:
-      'هندسة دقيقة وتصميم معماري فاخر. نصمم ونركّب أكثر أنظمة المصاعد موثوقية وأماناً مع دعم على مدار الساعة.',
+      'شركة دسر لتركيب وصيانة وإصلاح المصاعد في الرياض والسعودية — مصاعد منزلية وفاخرة بأعلى معايير الأمان.',
     siteName: 'دسر',
     ogLocale: 'ar_SA',
   },
   en: {
-    title: 'Dusr | Precision Elevator Systems',
+    title: 'Dusr Elevators | Elevator Installation & Maintenance, Saudi Arabia',
     description:
-      'Dusr Elevators — precise engineering and luxury architectural design. We engineer and install the most reliable, safest elevator systems in Saudi Arabia, with 24/7 technical support and monitoring.',
+      'Dusr is an elevator company in Saudi Arabia specializing in elevator installation, maintenance, and repair — residential, commercial, and luxury elevators in Riyadh and nationwide, built to the highest safety standards with 24/7 support.',
     ogDescription:
-      'Precise engineering and luxury architectural design. The most reliable and safest elevator systems with 24/7 support.',
+      'Dusr — elevator installation, maintenance & repair in Riyadh and across Saudi Arabia. Residential and luxury elevators, safety first.',
     siteName: 'Dusr',
     ogLocale: 'en_US',
   },

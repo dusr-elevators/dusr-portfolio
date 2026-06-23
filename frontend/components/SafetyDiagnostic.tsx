@@ -24,8 +24,8 @@ export default function SafetyDiagnostic({ lang }: SafetyDiagnosticProps) {
           </h2>
           <p className="font-sans text-base sm:text-lg text-[#c4c7c7] leading-relaxed">
             {lang === 'ar'
-              ? 'الأمان في دسر ليس مجرد ميزة ملحقة — بل هو الأساس لفلسفتنا الهندسية المعمارية بالكامل. يتجاوز كل مصعد نقوم بتركيبه المعايير الدولية الصارمة EN81 لسلامة الركاب في الاتحاد الأوروبي و ASME A17.1 الأمريكية.'
-              : 'Our zero-accident benchmark dictates every design choice. We engineer to triple redundancy configurations that vastly exceed typical building fire and structural code guidelines.'}
+              ? 'الأمان هو أساس عملنا في تركيب وصيانة المصاعد. يتجاوز كل مصعد نركّبه أو نصونه المعايير الدولية الصارمة EN81 الأوروبية و ASME A17.1 الأمريكية لسلامة الركاب.'
+              : 'Safety underpins every elevator we install and maintain. Each unit exceeds the strict EN81 (EU) and ASME A17.1 (US) passenger-safety standards through triple-redundant engineering.'}
           </p>
 
           <div className="space-y-8 pt-4">

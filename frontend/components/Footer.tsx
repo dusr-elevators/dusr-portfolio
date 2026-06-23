@@ -39,8 +39,8 @@ export default function Footer({ lang }: FooterProps) {
         <Logo lang={lang} />
         <p className="font-sans text-sm text-[#c4c7c7] max-w-sm leading-relaxed">
           {lang === 'ar'
-            ? 'الدقة المطلقة في كل حركة ميكانيكية. نبني معاً وبخطى واثقة مستقبل المصاعد الميكانيكية والكهربائية من خلال التفوق الهندسي والإبداع المعماري.'
-            : 'Absolute precision in every mechanical movement. Together, with confident steps, we are building the future of mechanical and electric elevators through engineering excellence and architectural innovation.'}
+            ? 'دسر شركة متخصصة في تركيب وصيانة وإصلاح المصاعد في الرياض والسعودية — مصاعد منزلية وتجارية وفاخرة بدقة هندسية وأمان عالٍ.'
+            : 'Dusr specializes in elevator installation, maintenance, and repair in Riyadh and across Saudi Arabia — residential, commercial, and luxury elevators built with engineering precision and safety.'}
         </p>
       </div>
 

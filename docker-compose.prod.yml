@@ -1,5 +1,6 @@
 services:
   backend:
+    restart: unless-stopped
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
@@ -19,6 +20,7 @@ services:
     # the 1 GB VPS never runs `next build`. Requires `docker login ghcr.io` once.
     image: ghcr.io/dusr-elevators/dusr-portfolio-web:latest
     pull_policy: always
+    restart: unless-stopped
     depends_on:
       - backend
     environment:
@@ -28,6 +30,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
+    restart: unless-stopped
     depends_on:
       - web
       - backend

@@ -71,8 +71,8 @@ export default function Hero({ onStartClick, lang }: HeroProps) {
           className="font-sans text-base sm:text-lg md:text-xl text-[#c4c7c7] max-w-xl mb-12 leading-relaxed"
         >
           {lang === 'ar'
-            ? 'إعادة تعريف هندسة المصاعد من خلال بساطة التصميم المعماري والإتقان الميكانيكي. نصمم ونركّب أكثر أنظمة المصاعد موثوقية وفخامة في العالم.'
-            : 'Redefining vertical transport through minimalist architectural elegance and strict mechanical mastery. We engineer and install the worlds most robust and luxurious systems.'}
+            ? 'دسر شركة متخصصة في تركيب وصيانة وإصلاح المصاعد في الرياض وجميع مناطق المملكة العربية السعودية — مصاعد منزلية وتجارية وفاخرة بأعلى معايير الجودة والأمان.'
+            : 'Dusr specializes in elevator installation, maintenance, and repair across Riyadh and all of Saudi Arabia — residential, commercial, and luxury elevators built to the highest standards of quality and safety.'}
         </motion.p>
 
         <motion.div

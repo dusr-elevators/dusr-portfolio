@@ -52,15 +52,15 @@ export default function Home({ lang }: { lang: Lang }) {
           {/* Text column (takes 7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <span className="font-mono text-xs text-[#FF5722] font-semibold uppercase tracking-widest block">
-              {lang === 'ar' ? 'رحلة التفوق المعماري والسرعة' : 'SWISS PRECISION IN EVERY UNIT'}
+              {lang === 'ar' ? 'عن شركة دسر للمصاعد' : 'ABOUT DUSR ELEVATORS'}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#e5e2e1] mt-2">
-              {lang === 'ar' ? 'الاسم الرائد في أنظمة الحركة والتصميم الرقمي' : 'Global Pioneers of Vertical Mobility'}
+              {lang === 'ar' ? 'دسر — من أفضل شركات المصاعد في السعودية' : 'Dusr — A Leading Elevator Company in Saudi Arabia'}
             </h2>
             <p className="font-sans text-sm sm:text-base text-[#c4c7c7] leading-relaxed">
               {lang === 'ar'
-                ? 'تأسست دسر لتغيير المفهوم التقليدي للمصاعد. نحن لا ننظر للمصعد كأداة ميكانيكية فحسب، بل هو تحفة معمارية متكاملة تزيد من فخامة البناء وتوفر تجربة ركوب صامتة تفيض بالسلام واليسر الفائق.'
-                : 'Formulate to surpass simplistic gear mechanics, Dusr defines the intersection between strict aerospace grade safety tolerances and architectural luxury finishes.'}
+                ? 'دسر شركة سعودية متخصصة في تركيب وصيانة وإصلاح المصاعد في الرياض وجميع مناطق المملكة. نقدّم مصاعد منزلية وتجارية وفاخرة بأعلى معايير الجودة، مع فريق دعم وصيانة على مدار الساعة.'
+                : 'Dusr is a Saudi company specializing in elevator installation, maintenance, and repair in Riyadh and across the Kingdom. We deliver residential, commercial, and luxury elevators to the highest quality standards, backed by 24/7 service and support.'}
             </p>
 
             {/* List of features */}

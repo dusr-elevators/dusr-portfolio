@@ -62,10 +62,10 @@ export default function BentoServices({ lang }: BentoServicesProps) {
         className={`mb-20 border-[#FF5722] pr-8 ${lang === 'ar' ? 'border-r-4 text-right' : 'border-l-4 text-left border-r-0 pl-8 pr-0'}`}
       >
         <span className="font-mono text-xs uppercase tracking-widest text-[#FF5722] font-semibold">
-          {lang === 'ar' ? 'القدرات الهندسية الأساسية' : 'CORE CAPABILITIES'}
+          {lang === 'ar' ? 'خدمات المصاعد المتكاملة' : 'OUR ELEVATOR SERVICES'}
         </span>
         <h2 className="font-display text-3xl sm:text-4xl font-extrabold mt-2 text-[#e5e2e1]">
-          {lang === 'ar' ? 'حلول هندسة المصاعد من دسر' : 'Dusr Elevator Engineering Solutions'}
+          {lang === 'ar' ? 'حلول تركيب وصيانة المصاعد من دسر' : 'Dusr Elevator Installation & Maintenance'}
         </h2>
       </div>
 
@@ -90,12 +90,12 @@ export default function BentoServices({ lang }: BentoServicesProps) {
               </span>
             </div>
             <h3 className="font-display text-2xl md:text-3xl font-bold mb-4 text-[#e5e2e1]">
-              {lang === 'ar' ? 'أنظمة الحركة الكثيفة' : 'High Traffic & Predictive Systems'}
+              {lang === 'ar' ? 'مصاعد تجارية وأنظمة حركة كثيفة' : 'Commercial Elevators & High-Traffic Systems'}
             </h3>
             <p className="font-sans text-sm sm:text-base text-[#c4c7c7] max-w-xl mb-4 leading-relaxed">
               {lang === 'ar'
-                ? 'مصممة خصيصاً لتلبية متطلبات صعود الأبراج الشاهقة الحركية، تجمع مصاعد دسر التجارية بين التوزيع الذكي التنبئي والتحكم الهيدروليكي السلس والسريع.'
-                : 'Custom engineered for high-altitude passenger volumes. Features include target floor call prioritization, real-time regenerative drives, and zero structural feedback vibrations.'}
+                ? 'نركّب مصاعد تجارية ومصاعد أبراج عالية الأداء مصممة لتلبية متطلبات الحركة الكثيفة، مع توزيع ذكي تنبّئي وتحكم سلس وسريع.'
+                : 'We install commercial and high-rise tower elevators engineered for heavy passenger volumes, with predictive dispatch, smooth regenerative drives, and zero structural vibration.'}
             </p>
           </div>
         </div>
@@ -111,12 +111,12 @@ export default function BentoServices({ lang }: BentoServicesProps) {
                 <span className="font-display font-black text-xl text-neutral-600">DUSR</span>
               </div>
               <h3 className="font-display text-2xl font-extrabold mb-4 text-[#e5e2e1]">
-                {lang === 'ar' ? 'فخامة خاصة للفلل' : 'Bespoke Residential'}
+                {lang === 'ar' ? 'مصاعد منزلية فاخرة للفلل' : 'Luxury Home Elevators for Villas'}
               </h3>
               <p className="font-sans text-sm text-[#c4c7c7] leading-relaxed mb-6">
                 {lang === 'ar'
-                  ? 'مصاعد منزلية متطورة للغاية صممت هندستها بدقة تامة لتلائم تصاميم الفلل الفارهة والقصور بمساحات مرنة وحركة صامتة كلياً لراحة عائلتك.'
-                  : 'Bespoke private luxury shaft solutions mapped on minimum footprints. Magnetic gearless tech integrates with delicate marble, timber, or safety panoramic glass panelings.'}
+                  ? 'مصاعد منزلية فاخرة للفلل والقصور في السعودية، صُممت بدقة لتلائم المساحات المختلفة بحركة صامتة تماماً ولمسات فاخرة لراحة عائلتك.'
+                  : 'Luxury home elevators for villas and palaces, precisely designed to fit any space with silent gearless motion and premium marble, timber, or panoramic glass finishes.'}
               </p>
             </div>
 
@@ -169,12 +169,12 @@ export default function BentoServices({ lang }: BentoServicesProps) {
 
           <div>
             <h3 className="font-display text-2xl font-bold mb-4 text-[#e5e2e1]">
-              {lang === 'ar' ? 'شحن ثقيل شديد التحمل' : 'Heavy Cargo Loading'}
+              {lang === 'ar' ? 'مصاعد صناعية وشحن ثقيل' : 'Industrial & Heavy Cargo Elevators'}
             </h3>
             <p className="font-sans text-sm text-[#c4c7c7] leading-relaxed mb-4">
               {lang === 'ar'
-                ? 'أنظمة متينة وفائقة المتانة لمقاومة الضغوط الكبيرة والأوزان الضخمة بمراكز اللوجستيات والمصانع.'
-                : 'Heavy duty, shockproof steel-floor logistics platforms engineered for forklift operations and aggressive cargo loading up to 20 tons.'}
+                ? 'مصاعد صناعية متينة لتركيب الأحمال الثقيلة في المصانع ومراكز اللوجستيات، مصممة لتحمّل الضغوط والأوزان الضخمة.'
+                : 'Heavy-duty, shockproof industrial elevators for factories and logistics hubs, engineered for forklift operations and aggressive cargo loading up to 20 tons.'}
             </p>
           </div>
         </div>
@@ -192,12 +192,12 @@ export default function BentoServices({ lang }: BentoServicesProps) {
                 <span className="w-2 h-2 rounded-full bg-[#FF5722] animate-ping"></span>
               </div>
               <h3 className="font-display text-2xl sm:text-3xl font-black mb-4 text-[#e5e2e1]">
-                {lang === 'ar' ? 'تحديث الأنظمة القديمة' : 'System Modernization'}
+                {lang === 'ar' ? 'تحديث وإصلاح المصاعد القديمة' : 'Elevator Modernization & Repair'}
               </h3>
               <p className="font-sans text-sm text-[#c4c7c7] leading-relaxed mb-6">
                 {lang === 'ar'
-                  ? 'بث حياة جديدة تماماً في بنيتك التحتية القديمة والمستهلكة. ندمج معايير إنترنت الأشياء (IoT) والأنظمة الذكية والمحركات المتناغمة في المصاعد القديمة لتحسين كفاءة التشغيل بنسبة تفوق 40%.'
-                  : 'We dismantle obsolete parts and seamlessly fit solid, high-frequency drives in existing historic lift structures, cutting carbon emissions dramatically.'}
+                  ? 'نتولّى إصلاح وصيانة وتحديث المصاعد القديمة، بدمج أنظمة ذكية ومحركات حديثة لرفع كفاءة التشغيل والأمان بنسبة تفوق 40%.'
+                  : 'We repair, maintain, and modernize ageing elevators — fitting smart controls and efficient drives to boost performance and safety dramatically.'}
               </p>
             </div>
 

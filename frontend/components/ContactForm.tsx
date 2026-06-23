@@ -126,8 +126,8 @@ export default function ContactForm({ lang }: ContactFormProps) {
             </h2>
             <p className="font-sans text-base text-[#c4c7c7] leading-relaxed mb-12">
               {lang === 'ar'
-                ? 'مستشارونا الهندسيون متواجدون ومستعدون بالكامل لتصميم وتحديد المواصفات الميكانيكية للمصاعد الخاصة بمشاريعكم العقارية الفخمة. من الفكرة الإنشائية الأولى وحتى الصيانة والتشغيل الدائم، نحن شريكك الموثوق للمدى الطويل.'
-                : 'Our engineering advisors are fully prepared to design and specify mechanical parameters for your luxury real estate developments. From the first structural draft to ongoing maintenance and long-term operations, we are your reliable partner for the long haul.'}
+                ? 'تواصل مع شركة دسر للمصاعد للحصول على عرض سعر لتركيب أو صيانة أو إصلاح مصعد. من الفكرة الأولى وحتى الصيانة الدائمة، نحن شريكك الموثوق في الرياض وجميع مناطق السعودية.'
+                : 'Contact Dusr for a quote on elevator installation, maintenance, or repair. From the first concept to ongoing service, we are your trusted elevator partner in Riyadh and across Saudi Arabia.'}
             </p>
 
             {/* Structured Contact Details */}
