@@ -95,8 +95,8 @@ export function jsonLdFor(lang: Lang) {
     name: lang === 'ar' ? 'دسر لأنظمة المصاعد' : 'Dusr Elevators',
     alternateName: lang === 'ar' ? 'Dusr Elevators' : 'دسر لأنظمة المصاعد',
     url: urlForLang(lang),
-    logo: `${SITE_URL}/Asset-1-square-padded.png`,
-    image: `${SITE_URL}/Asset-1-square-padded.png`,
+    logo: `${SITE_URL}/Asset-1-square-removed-background.png`,
+    image: `${SITE_URL}/Asset-1-square-removed-background.png`,
     description: t.description,
     telephone: '+966539705301',
     address: {
