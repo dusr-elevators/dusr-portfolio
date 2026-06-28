@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'pages',
     'financial',
     'media_app',
+    'design',
     'django_ckeditor_5',
     'rest_framework',
     'drf_spectacular',
