@@ -95,10 +95,10 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-8">
 
           {/* Left: tabs + options */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 min-w-0">
             <ComponentTabs
               categories={categories}
               activeId={activeTab}

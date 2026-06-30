@@ -55,7 +55,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
 
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1"
+        className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1 min-w-0"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {categories.map(cat => {
