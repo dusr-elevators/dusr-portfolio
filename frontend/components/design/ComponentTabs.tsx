@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ComponentCategory } from './types';
 import type { Lang } from '@/lib/lang';
+import DynamicIcon from './DynamicIcon';
 
 interface ComponentTabsProps {
   categories: ComponentCategory[];
@@ -71,10 +72,11 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
                   : 'bg-[#1e1e1e] border-[#444748] text-[#e5e2e1] hover:border-[#FF5722]'
               }`}
             >
+              {cat.icon && <DynamicIcon name={cat.icon} size={14} className="shrink-0" />}
+              {name}
               {isDone && !isActive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722] shrink-0" />
               )}
-              {name}
               {cat.is_required && !isDone && (
                 <span className="text-[10px] text-red-400 font-normal">*</span>
               )}

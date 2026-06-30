@@ -14,6 +14,29 @@ def design_projection_path(instance, filename):
     return os.path.join('design', 'projections', f"{uuid4().hex}.{ext}")
 
 
+class LucideIconChoice(models.Model):
+    label = models.CharField(
+        _('Label'),
+        max_length=100,
+        help_text=_('Friendly name shown in the dropdown, e.g. "Ceiling".'),
+    )
+    lucide_name = models.CharField(
+        _('Lucide icon name'),
+        max_length=50,
+        unique=True,
+        help_text=_('Exact PascalCase name from lucide.dev, e.g. "PanelTop".'),
+    )
+
+    class Meta:
+        db_table = 'design_lucideiconchoise'
+        ordering = ['label']
+        verbose_name = _('Lucide Icon')
+        verbose_name_plural = _('Lucide Icons')
+
+    def __str__(self):
+        return f"{self.label} ({self.lucide_name})"
+
+
 class ComponentCategory(models.Model):
     name_ar = models.CharField(_('Name (Arabic)'), max_length=100)
     name_en = models.CharField(_('Name (English)'), max_length=100)
@@ -27,11 +50,14 @@ class ComponentCategory(models.Model):
         default=False,
         help_text=_('User must select an option before exporting PDF.'),
     )
-    icon = models.CharField(
-        _('Icon (Lucide name)'),
-        max_length=50,
+    icon = models.ForeignKey(
+        LucideIconChoice,
+        verbose_name=_('Icon'),
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        help_text=_('Optional Lucide icon name shown in the tab, e.g. "Layers".'),
+        related_name='categories',
+        help_text=_('Icon shown in the component tab. Add new icons under Lucide Icons.'),
     )
     is_active = models.BooleanField(_('Active'), default=True)
 

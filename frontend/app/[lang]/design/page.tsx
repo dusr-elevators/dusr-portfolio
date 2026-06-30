@@ -14,7 +14,19 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data) ? data : (data.results ?? []);
+    const list: ComponentCategory[] = Array.isArray(data) ? data : (data.results ?? []);
+    // Rewrite internal Docker URLs to relative paths so the browser can load them
+    const internalBase = (process.env.API_INTERNAL_URL || '').replace(/\/$/, '');
+    if (!internalBase) return list;
+    const fixUrl = (url: string) => url.replace(internalBase, '');
+    return list.map(cat => ({
+      ...cat,
+      options: cat.options.map(opt => ({
+        ...opt,
+        thumbnail: fixUrl(opt.thumbnail),
+        projection_image: fixUrl(opt.projection_image),
+      })),
+    }));
   } catch {
     return [];
   }

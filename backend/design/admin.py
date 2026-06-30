@@ -1,6 +1,18 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ComponentCategory, ComponentOption
+from .models import ComponentCategory, ComponentOption, LucideIconChoice
+
+
+@admin.register(LucideIconChoice)
+class LucideIconChoiceAdmin(admin.ModelAdmin):
+    list_display = ('label', 'lucide_name', 'usage_count')
+    search_fields = ('label', 'lucide_name')
+    ordering = ('label',)
+
+    @admin.display(description='Used by')
+    def usage_count(self, obj):
+        count = obj.categories.count()
+        return f"{count} categor{'y' if count == 1 else 'ies'}"
 
 
 class ComponentOptionInline(admin.TabularInline):
@@ -19,7 +31,7 @@ class ComponentOptionInline(admin.TabularInline):
 
 @admin.register(ComponentCategory)
 class ComponentCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name_en', 'name_ar', 'layer_order', 'is_required', 'is_active', 'option_count')
+    list_display = ('name_en', 'name_ar', 'icon', 'layer_order', 'is_required', 'is_active', 'option_count')
     list_filter = ('is_required', 'is_active')
     search_fields = ('name_en', 'name_ar')
     ordering = ('layer_order',)

@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
   // it lets the contact form post without CORS. No-op if API_INTERNAL_URL unset.
   async rewrites() {
     const api = process.env.API_INTERNAL_URL?.replace(/\/$/, '');
-    return api ? [{ source: '/api/:path*', destination: `${api}/api/:path*` }] : [];
+    return api
+      ? [
+          { source: '/api/:path*', destination: `${api}/api/:path*` },
+          { source: '/media/:path*', destination: `${api}/media/:path*` },
+        ]
+      : [];
   },
 };
 

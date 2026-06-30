@@ -61,14 +61,24 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
 
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {lang === 'ar' ? 'مصمم كبينة المصعد' : 'Elevator Cabin Designer'}
+        <div className="mb-8" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-[#FF5722]" aria-hidden="true" />
+            <span className={`text-[#FF5722] text-xs font-semibold uppercase ${lang === 'ar' ? '' : 'tracking-[0.2em]'}`}>
+              {lang === 'ar' ? 'استوديو التصميم' : 'Design Studio'}
+            </span>
+          </div>
+          <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
+            {lang === 'ar' ? (
+              <><span className="text-[#FF5722]">مصمم</span> كبينة المصعد</>
+            ) : (
+              <>Elevator Cabin <span className="text-[#FF5722]">Designer</span></>
+            )}
           </h1>
-          <p className="mt-2 text-[#888] text-sm">
+          <p className="mt-3 text-[#9a9a9a] text-base max-w-md leading-relaxed">
             {lang === 'ar'
-              ? 'اختر مكونات تصميم المصعد وشاهد النتيجة فوراً'
-              : 'Choose your elevator components and see the result instantly'}
+              ? 'اختر مكونات مصعدك وشاهد التصميم يتشكّل أمامك لحظة بلحظة'
+              : 'Pick your components and watch the cabin take shape in real time.'}
           </p>
           {requiredTotal > 0 && (
             <div className="mt-3 flex items-center gap-2">

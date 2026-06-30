@@ -10,10 +10,14 @@ class ComponentOptionSerializer(serializers.ModelSerializer):
 
 class ComponentCategorySerializer(serializers.ModelSerializer):
     options = serializers.SerializerMethodField()
+    icon = serializers.SerializerMethodField()
 
     class Meta:
         model = ComponentCategory
         fields = ['id', 'name_ar', 'name_en', 'layer_order', 'is_required', 'icon', 'options']
+
+    def get_icon(self, obj):
+        return obj.icon.lucide_name if obj.icon_id else ''
 
     def get_options(self, obj):
         active_options = obj.options.filter(is_active=True)
