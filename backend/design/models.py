@@ -59,6 +59,18 @@ class ComponentCategory(models.Model):
         related_name='categories',
         help_text=_('Icon shown in the component tab. Add new icons under Lucide Icons.'),
     )
+    depends_on_category = models.ForeignKey(
+        'self',
+        verbose_name=_('Depends on category'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='dependent_categories',
+        help_text=_(
+            "If set, this category's layer image is resolved against the selected "
+            "option of the target category (e.g. Mirror depends on Walls)."
+        ),
+    )
     is_active = models.BooleanField(_('Active'), default=True)
 
     class Meta:
@@ -104,3 +116,34 @@ class ComponentOption(models.Model):
 
     def __str__(self):
         return f"{self.category.name_en} — {self.name_en}"
+
+
+class OptionVariant(models.Model):
+    option = models.ForeignKey(
+        ComponentOption,
+        on_delete=models.CASCADE,
+        related_name='variants',
+        verbose_name=_('Option'),
+        help_text=_('The dependent-category option, e.g. a mirror position.'),
+    )
+    depends_on_option = models.ForeignKey(
+        ComponentOption,
+        on_delete=models.CASCADE,
+        related_name='variant_uses',
+        verbose_name=_('For option'),
+        help_text=_('The option this variant image is painted on, e.g. a wall finish.'),
+    )
+    projection_image = models.ImageField(
+        _('Projection image'),
+        upload_to=design_projection_path,
+        help_text=_('Transparent PNG for this option-on-option combination.'),
+    )
+
+    class Meta:
+        db_table = 'design_optionvariant'
+        unique_together = ('option', 'depends_on_option')
+        verbose_name = _('Option Variant')
+        verbose_name_plural = _('Option Variants')
+
+    def __str__(self):
+        return f"{self.option.name_en} on {self.depends_on_option.name_en}"
