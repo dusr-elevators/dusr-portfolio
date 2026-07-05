@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { ComponentCategory, Selections } from './types';
 import type { Lang } from '@/lib/lang';
+import { resolveLayerImage } from './resolveLayerImage';
 
 interface ProjectionCanvasProps {
   categories: ComponentCategory[];
@@ -42,10 +43,11 @@ export default function ProjectionCanvas({ categories, selections, lang, canvasR
           .map(cat => {
             const selected = selections[cat.id];
             if (!selected) return null;
+            const src = resolveLayerImage(cat, selected, selections);
             return (
               <Image
                 key={cat.id}
-                src={selected.projection_image}
+                src={src}
                 alt={lang === 'ar' ? selected.name_ar : selected.name_en}
                 fill
                 className="object-contain"

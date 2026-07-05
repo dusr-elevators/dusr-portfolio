@@ -25,6 +25,10 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
         ...opt,
         thumbnail: fixUrl(opt.thumbnail),
         projection_image: fixUrl(opt.projection_image),
+        variants: opt.variants?.map(v => ({
+          ...v,
+          projection_image: fixUrl(v.projection_image),
+        })),
       })),
     }));
   } catch {
