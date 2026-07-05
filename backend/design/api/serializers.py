@@ -29,5 +29,7 @@ class ComponentCategorySerializer(serializers.ModelSerializer):
         return obj.icon.lucide_name if obj.icon_id else ''
 
     def get_options(self, obj):
-        active_options = obj.options.filter(is_active=True)
+        active_options = getattr(obj, 'active_options', None)
+        if active_options is None:
+            active_options = obj.options.filter(is_active=True)
         return ComponentOptionSerializer(active_options, many=True, context=self.context).data

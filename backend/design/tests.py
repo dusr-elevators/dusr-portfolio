@@ -49,7 +49,83 @@ class OptionVariantModelTest(TestCase):
             )
 
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from rest_framework.test import APIRequestFactory
+
 from .api.serializers import ComponentCategorySerializer
+from .api.viewsets import ComponentCategoryViewSet
+
+
+class PrefetchQueryCountTest(TestCase):
+    """Regression test: ensure no N+1 queries when serializing categories via viewset queryset."""
+
+    def _make_category(self, name, layer_order, depends_on=None):
+        return ComponentCategory.objects.create(
+            name_en=name, name_ar=name, layer_order=layer_order,
+            is_active=True, depends_on_category=depends_on,
+        )
+
+    def _make_active_option_with_variant(self, category, name, depends_on_option=None):
+        opt = ComponentOption.objects.create(
+            category=category, name_en=name, name_ar=name, is_active=True,
+            thumbnail=SimpleUploadedFile(f"{name}-t.png", b"img", content_type="image/png"),
+            projection_image=SimpleUploadedFile(f"{name}-p.png", b"img", content_type="image/png"),
+        )
+        if depends_on_option:
+            OptionVariant.objects.create(
+                option=opt, depends_on_option=depends_on_option,
+                projection_image=SimpleUploadedFile(f"{name}-v.png", b"img", content_type="image/png"),
+            )
+        return opt
+
+    def _count_queries_for_qs(self, n_cats):
+        """Build n_cats categories each with 2 active options + 1 variant, return query count."""
+        # Reset DB state via transaction savepoints isn't needed; each TestCase wraps in transaction.
+        cats = []
+        wall_opts = []
+        for i in range(n_cats):
+            cat = self._make_category(f"Cat{i}", layer_order=i + 1)
+            cats.append(cat)
+            opt1 = self._make_active_option_with_variant(cat, f"Opt{i}a")
+            opt2 = self._make_active_option_with_variant(cat, f"Opt{i}b")
+            wall_opts.extend([opt1, opt2])
+
+        qs = ComponentCategoryViewSet().get_queryset()
+        request = APIRequestFactory().get('/')
+        with CaptureQueriesContext(connection) as ctx:
+            data = ComponentCategorySerializer(qs, many=True, context={'request': request}).data
+            _ = [c['options'] for c in data]  # force evaluation
+        return len(ctx)
+
+    def test_no_n_plus_one_when_serializing_categories(self):
+        # Build 2 categories, each with 2 active options (no variants needed for count test)
+        walls = self._make_category("Walls", layer_order=1)
+        mirror = self._make_category("Mirror", layer_order=2)
+        w1 = self._make_active_option_with_variant(walls, "Marble")
+        w2 = self._make_active_option_with_variant(walls, "Granite")
+        self._make_active_option_with_variant(mirror, "MirTop", depends_on_option=w1)
+        self._make_active_option_with_variant(mirror, "MirBot", depends_on_option=w2)
+
+        qs = ComponentCategoryViewSet().get_queryset()
+        request = APIRequestFactory().get('/')
+        with CaptureQueriesContext(connection) as ctx:
+            data = ComponentCategorySerializer(qs, many=True, context={'request': request}).data
+            _ = [c['options'] for c in data]  # force evaluation
+
+        # With proper prefetching: 1 query for categories + 1 for active options + 1 for variants = 3 total.
+        # Constant regardless of number of categories/options (no N+1).
+        query_count_2cats = len(ctx)
+        self.assertEqual(query_count_2cats, 3, f"Expected 3 queries (categories+options+variants), got {query_count_2cats}")
+
+    def test_query_count_is_constant_not_linear(self):
+        """Confirm query count doesn't grow when adding more categories and options."""
+        count_small = self._count_queries_for_qs(2)
+        count_large = self._count_queries_for_qs(5)
+        self.assertEqual(
+            count_small, count_large,
+            f"Query count grew from {count_small} (2 cats) to {count_large} (5 cats) — N+1 detected",
+        )
 
 
 class SerializerTest(TestCase):

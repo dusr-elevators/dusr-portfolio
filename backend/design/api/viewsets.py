@@ -6,6 +6,10 @@ from .serializers import ComponentCategorySerializer
 
 class ComponentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ComponentCategory.objects.filter(is_active=True).prefetch_related(
-        Prefetch('options', queryset=ComponentOption.objects.prefetch_related('variants')),
+        Prefetch(
+            'options',
+            queryset=ComponentOption.objects.filter(is_active=True).prefetch_related('variants'),
+            to_attr='active_options',
+        ),
     )
     serializer_class = ComponentCategorySerializer
