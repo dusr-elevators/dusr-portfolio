@@ -1,11 +1,19 @@
 from rest_framework import serializers
-from ..models import ComponentCategory, ComponentOption
+from ..models import ComponentCategory, ComponentOption, OptionVariant
+
+
+class OptionVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OptionVariant
+        fields = ['depends_on_option', 'projection_image']
 
 
 class ComponentOptionSerializer(serializers.ModelSerializer):
+    variants = OptionVariantSerializer(many=True, read_only=True)
+
     class Meta:
         model = ComponentOption
-        fields = ['id', 'name_ar', 'name_en', 'thumbnail', 'projection_image', 'sort_order']
+        fields = ['id', 'name_ar', 'name_en', 'thumbnail', 'projection_image', 'sort_order', 'variants']
 
 
 class ComponentCategorySerializer(serializers.ModelSerializer):
@@ -14,7 +22,8 @@ class ComponentCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ComponentCategory
-        fields = ['id', 'name_ar', 'name_en', 'layer_order', 'is_required', 'icon', 'options']
+        fields = ['id', 'name_ar', 'name_en', 'layer_order', 'is_required', 'icon',
+                  'depends_on_category', 'options']
 
     def get_icon(self, obj):
         return obj.icon.lucide_name if obj.icon_id else ''
