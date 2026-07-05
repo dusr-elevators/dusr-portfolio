@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Backend Django settings module: `goldenMeatPortfolio.settings.dev` (default in `manage.py`).
-- Run backend tests from `backend/` with: `.venv/bin/python manage.py test design`.
+- Backend runs in Docker; host `./backend` is volume-mounted to `/app`. Run backend tests with: `docker exec dusr-portfolio-backend-1 python manage.py test design` (edits and generated migrations sync to the host automatically). Ignore the `staticfiles.W004` warning.
 - All `projection_image` assets must share the same canvas dimensions (existing rule from spec/model help text).
 - Frontend has **no** automated test runner — verify frontend tasks with `npm run typecheck` (`tsc --noEmit`) from `frontend/` plus manual check. Do NOT add a test runner (out of scope).
 - Follow existing code style: Django `gettext_lazy as _` for verbose names/help text; DRF `ModelSerializer`s; frontend uses `next/image` and the existing dark palette.
@@ -90,7 +90,7 @@ class OptionVariantModelTest(TestCase):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `.venv/bin/python manage.py test design -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design -v 2` (in the backend container)
 Expected: FAIL — `ImportError: cannot import name 'OptionVariant'` (model does not exist yet).
 
 - [ ] **Step 3: Add the field and model**
@@ -148,12 +148,12 @@ class OptionVariant(models.Model):
 
 - [ ] **Step 4: Generate the migration**
 
-Run: `.venv/bin/python manage.py makemigrations design` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py makemigrations design` (in the backend container)
 Expected: creates `backend/design/migrations/0004_...py` adding the field and model.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `.venv/bin/python manage.py test design -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design -v 2` (in the backend container)
 Expected: PASS (3 tests in `OptionVariantModelTest`).
 
 - [ ] **Step 6: Commit**
@@ -224,7 +224,7 @@ class SerializerTest(TestCase):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `.venv/bin/python manage.py test design.tests.SerializerTest -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design.tests.SerializerTest -v 2` (in the backend container)
 Expected: FAIL — `KeyError: 'depends_on_category'` (field not serialized yet).
 
 - [ ] **Step 3: Update the serializers**
@@ -287,7 +287,7 @@ class ComponentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `.venv/bin/python manage.py test design -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design -v 2` (in the backend container)
 Expected: PASS (all model + serializer tests).
 
 - [ ] **Step 6: Commit**
@@ -344,7 +344,7 @@ class AdminInlineGatingTest(TestCase):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `.venv/bin/python manage.py test design.tests.AdminInlineGatingTest -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design.tests.AdminInlineGatingTest -v 2` (in the backend container)
 Expected: FAIL — `AttributeError`/assertion: `get_inlines` not overridden yet (default returns configured inlines, here `[]` for all, so `test_inline_shown_for_wall_option` fails on `len == 1`).
 
 - [ ] **Step 3: Implement the inline + gating**
@@ -392,7 +392,7 @@ Then, inside the existing `@admin.register(ComponentOption)` `ComponentOptionAdm
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `.venv/bin/python manage.py test design -v 2` (from `backend/`)
+Run: `docker exec dusr-portfolio-backend-1 python manage.py test design -v 2` (in the backend container)
 Expected: PASS (all tests including `AdminInlineGatingTest`).
 
 - [ ] **Step 5: Commit**
