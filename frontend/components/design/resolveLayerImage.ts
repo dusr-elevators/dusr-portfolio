@@ -1,18 +1,44 @@
 import type { ComponentCategory, ComponentOption, Selections } from './types';
 
-// Resolves the projection image for a layer. For categories that depend on
-// another category (e.g. Mirror -> Walls), pick the variant matching the
-// currently selected wall option; otherwise fall back to the option's own
-// generic projection image.
+// 1x1 transparent PNG: returned when a dependent category (e.g. mirror) has no
+// variant for the currently selected parent option (e.g. wall). This ensures
+// no unexpected fallback images break the design composition.
+const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+/**
+ * Resolves the projection image for a layer.
+ *
+ * For categories that depend on another category (e.g. Mirror -> Walls):
+ * - If a wall is selected: returns the variant image if found, otherwise TRANSPARENT_PNG
+ * - If no wall is selected: returns the generic projection_image (fallback)
+ *
+ * For independent categories:
+ * - Always returns the generic projection_image
+ */
 export function resolveLayerImage(
   cat: ComponentCategory,
   selected: ComponentOption,
   selections: Selections,
 ): string {
-  if (cat.depends_on_category != null) {
-    const wall = selections[cat.depends_on_category];
-    const variant = selected.variants?.find(v => v.depends_on_option === wall?.id);
-    if (variant) return variant.projection_image;
+  // Independent category: always use generic image
+  if (cat.depends_on_category == null) {
+    return selected.projection_image;
   }
-  return selected.projection_image;
+
+  // Dependent category: resolve based on parent selection
+  const parentOption = selections[cat.depends_on_category];
+
+  // No parent selected: use generic fallback
+  if (!parentOption) {
+    return selected.projection_image;
+  }
+
+  // Parent selected: find matching variant
+  const variant = selected.variants?.find(v => v.depends_on_option === parentOption.id);
+  if (variant) {
+    return variant.projection_image;
+  }
+
+  // Variant expected but missing: return transparent instead of generic fallback
+  return TRANSPARENT_PNG;
 }
