@@ -10,17 +10,16 @@ import type { ComponentCategory, ComponentOption, Selections } from './types';
 import type { Lang } from '@/lib/lang';
 
 /**
- * Checks if a mirror option is available for the currently selected wall.
- * Returns true if the option has a variant matching the current wall, false otherwise.
+ * Checks if a component option is available for the currently selected parent option.
+ * Returns true if the option has a variant matching the current parent, false otherwise.
  */
 function isOptionAvailable(
   option: ComponentOption,
-  currentWallId: number | undefined,
-  wallsCatId: number
+  currentParentOptionId: number | undefined
 ): boolean {
-  if (!currentWallId) return false;
+  if (!currentParentOptionId) return false;
   if (!option.variants) return false;
-  return option.variants.some(v => v.depends_on_option === currentWallId);
+  return option.variants.some(v => v.depends_on_option === currentParentOptionId);
 }
 
 interface DesignStudioProps {
@@ -59,7 +58,36 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
 
   const handleSelect = (option: ComponentOption) => {
     setSelections(prev => {
-      const next = { ...prev, [activeTab]: option };
+      let next = { ...prev, [activeTab]: option };
+
+      // Auto-reset dependent category selections if they're no longer available
+      // When a category changes, check all categories that depend on it
+      const changedCategory = categories.find(c => c.id === activeTab);
+      if (changedCategory) {
+        for (const depCategory of categories) {
+          if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
+            // Check if the current selection is still available for this new parent option
+            const currentSelection = next[depCategory.id];
+            if (!isOptionAvailable(currentSelection, option.id)) {
+              // Find the "None" option (a fallback option that works with all parents)
+              const noneOption = depCategory.options.find(o => {
+                if (!o.variants) return false;
+                // "None" is typically available for all options
+                return o.variants.some(v => v.depends_on_option === option.id);
+              });
+
+              if (noneOption) {
+                next = { ...next, [depCategory.id]: noneOption };
+              } else {
+                // If no fallback found, just remove the selection
+                const { [depCategory.id]: _, ...cleaned } = next;
+                next = cleaned;
+              }
+            }
+          }
+        }
+      }
+
       syncUrl(next);
       return next;
     });
@@ -140,7 +168,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
                     if (currentParentSelection) {
                       // Disable options that don't have a variant for the current parent selection
                       disabledIds = activeCategory.options
-                        .filter(option => !isOptionAvailable(option, currentParentSelection.id, parentCatId))
+                        .filter(option => !isOptionAvailable(option, currentParentSelection.id))
                         .map(option => option.id);
                     } else {
                       // If parent category is not selected, disable all options
