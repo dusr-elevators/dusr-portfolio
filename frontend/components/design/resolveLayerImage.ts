@@ -3,7 +3,8 @@ import type { ComponentCategory, ComponentOption, Selections } from './types';
 // 1x1 transparent PNG: returned when a dependent category (e.g. mirror) has no
 // variant for the currently selected parent option (e.g. wall). This ensures
 // no unexpected fallback images break the design composition.
-const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+// Using a static asset instead of data: URL for Next.js Image compatibility.
+const TRANSPARENT_PNG = '/transparent.png';
 
 /**
  * Resolves the projection image for a layer.

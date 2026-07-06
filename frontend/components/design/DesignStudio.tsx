@@ -70,11 +70,12 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
             const currentSelection = next[depCategory.id];
             if (!isOptionAvailable(currentSelection, option.id)) {
               // Find the "None" option (a fallback option that works with all parents)
-              const noneOption = depCategory.options.find(o => {
-                if (!o.variants) return false;
-                // "None" is typically available for all options
-                return o.variants.some(v => v.depends_on_option === option.id);
-              });
+              // Search for "None" option first by name, then fall back to any available option
+              const noneOption = depCategory.options.find(o => o.name_en === 'None' || o.name_ar === 'لا شيء')
+                ?? depCategory.options.find(o => {
+                  if (!o.variants) return false;
+                  return o.variants.some(v => v.depends_on_option === option.id);
+                });
 
               if (noneOption) {
                 next = { ...next, [depCategory.id]: noneOption };

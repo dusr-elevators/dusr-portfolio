@@ -11,7 +11,7 @@
 import { resolveLayerImage } from '../resolveLayerImage';
 import type { ComponentCategory, ComponentOption, Selections } from '../types';
 
-const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+const TRANSPARENT_PNG = '/transparent.png';
 
 // Test scenario data structure
 interface TestScenario {
