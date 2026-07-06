@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ComponentTabs from './ComponentTabs';
 import OptionGrid from './OptionGrid';
@@ -8,6 +8,20 @@ import ProjectionCanvas from './ProjectionCanvas';
 import ExportButton from './ExportButton';
 import type { ComponentCategory, ComponentOption, Selections } from './types';
 import type { Lang } from '@/lib/lang';
+
+/**
+ * Checks if a mirror option is available for the currently selected wall.
+ * Returns true if the option has a variant matching the current wall, false otherwise.
+ */
+function isOptionAvailable(
+  option: ComponentOption,
+  currentWallId: number | undefined,
+  wallsCatId: number
+): boolean {
+  if (!currentWallId) return false;
+  if (!option.variants) return false;
+  return option.variants.some(v => v.depends_on_option === currentWallId);
+}
 
 interface DesignStudioProps {
   categories: ComponentCategory[];
@@ -117,12 +131,32 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
                     </span>
                   )}
                 </h2>
-                <OptionGrid
-                  options={activeCategory.options}
-                  selectedId={selections[activeTab]?.id ?? null}
-                  onSelect={handleSelect}
-                  lang={lang}
-                />
+                {(() => {
+                  // Compute disabled options for categories that depend on another category
+                  let disabledIds: number[] = [];
+                  if (activeCategory.depends_on_category != null) {
+                    const parentCatId = activeCategory.depends_on_category;
+                    const currentParentSelection = selections[parentCatId];
+                    if (currentParentSelection) {
+                      // Disable options that don't have a variant for the current parent selection
+                      disabledIds = activeCategory.options
+                        .filter(option => !isOptionAvailable(option, currentParentSelection.id, parentCatId))
+                        .map(option => option.id);
+                    } else {
+                      // If parent category is not selected, disable all options
+                      disabledIds = activeCategory.options.map(option => option.id);
+                    }
+                  }
+                  return (
+                    <OptionGrid
+                      options={activeCategory.options}
+                      selectedId={selections[activeTab]?.id ?? null}
+                      onSelect={handleSelect}
+                      lang={lang}
+                      disabledIds={disabledIds}
+                    />
+                  );
+                })()}
               </div>
             )}
           </div>
