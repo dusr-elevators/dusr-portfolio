@@ -45,6 +45,8 @@ services:
       - "443:443"
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - backend_media:/var/www/media:ro
+      - backend_staticfiles:/var/www/static:ro
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
 
