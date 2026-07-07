@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   images: {
+    unoptimized: true, // Allow next/image to load from /media and /static without optimization
     remotePatterns: [
       { protocol: 'https', hostname: 'dusr.sa' },
       { protocol: 'http', hostname: 'localhost' },
