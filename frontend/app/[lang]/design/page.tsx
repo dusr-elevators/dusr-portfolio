@@ -8,11 +8,15 @@ import type { ComponentCategory } from '@/components/design/types';
 const apiBase = process.env.API_INTERNAL_URL || 'http://localhost:8000';
 
 async function fetchCategories(): Promise<ComponentCategory[]> {
+  const url = `${apiBase}/api/design/categories/`;
   try {
-    const res = await fetch(`${apiBase}/api/design/categories/`, {
-      next: { revalidate: 60 },
+    const res = await fetch(url, {
+      cache: 'no-store',
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`Failed to fetch design categories from ${url}: ${res.status} ${res.statusText}`);
+      return [];
+    }
     const data = await res.json();
     const list: ComponentCategory[] = Array.isArray(data) ? data : (data.results ?? []);
     // Rewrite internal Docker URLs to relative paths so the browser can load them
@@ -31,7 +35,8 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
         })),
       })),
     }));
-  } catch {
+  } catch (error) {
+    console.error(`Failed to fetch design categories from ${url}:`, error);
     return [];
   }
 }

@@ -6,10 +6,16 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       DJANGO_SETTINGS_MODULE: goldenMeatPortfolio.settings.prod
-      DJANGO_ALLOWED_HOSTS: dusr.sa,www.dusr.sa,82.223.81.234
+      # Include Docker service names because the Next.js server fetches the API
+      # over the internal compose network during SSR/ISR.
+      DJANGO_ALLOWED_HOSTS: dusr.sa,www.dusr.sa,82.223.81.234,backend
       DJANGO_CSRF_TRUSTED_ORIGINS: https://dusr.sa,https://www.dusr.sa,http://82.223.81.234
       DJANGO_DB_PATH: /app/data/db.sqlite3
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY before starting production}
+      # TLS is terminated and HTTP->HTTPS is enforced by nginx. Keeping Django's
+      # redirect off prevents internal HTTP calls from the web container from
+      # being redirected to HTTPS on the plain gunicorn port.
+      DJANGO_SECURE_SSL_REDIRECT: "false"
     volumes:
       - backend_media:/app/media
       - backend_staticfiles:/app/staticfiles
