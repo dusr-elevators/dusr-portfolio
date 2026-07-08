@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ComponentTabs from './ComponentTabs';
 import OptionGrid from './OptionGrid';
+import DependentOptionRadioList from './DependentOptionRadioList';
 import ProjectionCanvas from './ProjectionCanvas';
 import ExportButton from './ExportButton';
 import type { ComponentCategory, ComponentOption, Selections } from './types';
@@ -43,6 +44,15 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
         if (found) initial[cat.id] = found;
       }
     }
+    // Drop dependent selections whose variant no longer exists for the restored parent
+    for (const cat of categories) {
+      if (cat.depends_on_category != null && initial[cat.id]) {
+        const parent = initial[cat.depends_on_category];
+        if (!parent || !isOptionAvailable(initial[cat.id], parent.id)) {
+          delete initial[cat.id];
+        }
+      }
+    }
     return initial;
   });
 
@@ -60,35 +70,29 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
     setSelections(prev => {
       let next = { ...prev, [activeTab]: option };
 
-      // Auto-reset dependent category selections if they're no longer available
-      // When a category changes, check all categories that depend on it
-      const changedCategory = categories.find(c => c.id === activeTab);
-      if (changedCategory) {
-        for (const depCategory of categories) {
-          if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
-            // Check if the current selection is still available for this new parent option
-            const currentSelection = next[depCategory.id];
-            if (!isOptionAvailable(currentSelection, option.id)) {
-              // Find the "None" option (a fallback option that works with all parents)
-              // Search for "None" option first by name, then fall back to any available option
-              const noneOption = depCategory.options.find(o => o.name_en === 'None' || o.name_ar === 'لا شيء')
-                ?? depCategory.options.find(o => {
-                  if (!o.variants) return false;
-                  return o.variants.some(v => v.depends_on_option === option.id);
-                });
-
-              if (noneOption) {
-                next = { ...next, [depCategory.id]: noneOption };
-              } else {
-                // If no fallback found, just remove the selection
-                const { [depCategory.id]: _, ...cleaned } = next;
-                next = cleaned;
-              }
-            }
+      // A dependent selection that has no variant for the new parent resets to "None"
+      for (const depCategory of categories) {
+        if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
+          if (!isOptionAvailable(next[depCategory.id], option.id)) {
+            const { [depCategory.id]: _removed, ...cleaned } = next;
+            next = cleaned;
           }
         }
       }
 
+      syncUrl(next);
+      return next;
+    });
+  };
+
+  const handleDependentSelect = (option: ComponentOption | null) => {
+    if (option) {
+      handleSelect(option);
+      return;
+    }
+    // "None": clear this category's selection
+    setSelections(prev => {
+      const { [activeTab]: _removed, ...next } = prev;
       syncUrl(next);
       return next;
     });
@@ -160,32 +164,32 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
                     </span>
                   )}
                 </h2>
-                {(() => {
-                  // Compute disabled options for categories that depend on another category
-                  let disabledIds: number[] = [];
-                  if (activeCategory.depends_on_category != null) {
-                    const parentCatId = activeCategory.depends_on_category;
-                    const currentParentSelection = selections[parentCatId];
-                    if (currentParentSelection) {
-                      // Disable options that don't have a variant for the current parent selection
-                      disabledIds = activeCategory.options
-                        .filter(option => !isOptionAvailable(option, currentParentSelection.id))
-                        .map(option => option.id);
-                    } else {
-                      // If parent category is not selected, disable all options
-                      disabledIds = activeCategory.options.map(option => option.id);
-                    }
-                  }
-                  return (
-                    <OptionGrid
-                      options={activeCategory.options}
-                      selectedId={selections[activeTab]?.id ?? null}
-                      onSelect={handleSelect}
-                      lang={lang}
-                      disabledIds={disabledIds}
-                    />
-                  );
-                })()}
+                {activeCategory.depends_on_category != null ? (
+                  (() => {
+                    const parentCat = categories.find(c => c.id === activeCategory.depends_on_category);
+                    const parentSelection = selections[activeCategory.depends_on_category];
+                    const available = parentSelection
+                      ? activeCategory.options.filter(o => isOptionAvailable(o, parentSelection.id))
+                      : [];
+                    return (
+                      <DependentOptionRadioList
+                        options={available}
+                        selectedId={selections[activeTab]?.id ?? null}
+                        onSelect={handleDependentSelect}
+                        lang={lang}
+                        parentName={parentCat ? (lang === 'ar' ? parentCat.name_ar : parentCat.name_en) : ''}
+                        parentSelected={!!parentSelection}
+                      />
+                    );
+                  })()
+                ) : (
+                  <OptionGrid
+                    options={activeCategory.options}
+                    selectedId={selections[activeTab]?.id ?? null}
+                    onSelect={handleSelect}
+                    lang={lang}
+                  />
+                )}
               </div>
             )}
           </div>

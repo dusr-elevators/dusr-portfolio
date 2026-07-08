@@ -10,10 +10,9 @@ interface OptionGridProps {
   selectedId: number | null;
   onSelect: (option: ComponentOption) => void;
   lang: Lang;
-  disabledIds?: number[];
 }
 
-export default function OptionGrid({ options, selectedId, onSelect, lang, disabledIds = [] }: OptionGridProps) {
+export default function OptionGrid({ options, selectedId, onSelect, lang }: OptionGridProps) {
   if (options.length === 0) {
     return (
       <p className="text-center text-[#888] py-12 text-sm">
@@ -26,20 +25,16 @@ export default function OptionGrid({ options, selectedId, onSelect, lang, disabl
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
       {options.map(option => {
         const isSelected = option.id === selectedId;
-        const isDisabled = disabledIds.includes(option.id);
         const name = lang === 'ar' ? option.name_ar : option.name_en;
         return (
           <button
             key={option.id}
-            onClick={() => !isDisabled && onSelect(option)}
-            disabled={isDisabled}
-            className={`relative rounded-xl overflow-hidden border-2 transition-all group ${
+            onClick={() => onSelect(option)}
+            className={`relative rounded-xl overflow-hidden border-2 transition-all group cursor-pointer ${
               isSelected
                 ? 'border-[#FF5722] ring-2 ring-[#FF5722]/30'
-                : isDisabled
-                ? 'border-[#2a2a2a] opacity-50'
                 : 'border-[#2a2a2a] hover:border-[#444748]'
-            } ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            }`}
           >
             <div className="aspect-square bg-[#1a1a1a] relative">
               {option.thumbnail && (
