@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
@@ -157,21 +158,22 @@ class OptionVariantAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         created = replaced = deleted = 0
-        for row, col, upload, delete in changes:
-            variant = OptionVariant.objects.filter(option=row, depends_on_option=col).first()
-            if delete:
-                if variant:
+        with transaction.atomic():
+            for row, col, upload, delete in changes:
+                variant = OptionVariant.objects.filter(option=row, depends_on_option=col).first()
+                if delete:
+                    if variant:
+                        variant.projection_image.delete(save=False)
+                        variant.delete()
+                        deleted += 1
+                elif variant:
                     variant.projection_image.delete(save=False)
-                    variant.delete()
-                    deleted += 1
-            elif variant:
-                variant.projection_image.delete(save=False)
-                variant.projection_image = upload
-                variant.save()
-                replaced += 1
-            else:
-                OptionVariant.objects.create(option=row, depends_on_option=col, projection_image=upload)
-                created += 1
+                    variant.projection_image = upload
+                    variant.save()
+                    replaced += 1
+                else:
+                    OptionVariant.objects.create(option=row, depends_on_option=col, projection_image=upload)
+                    created += 1
         messages.success(request, f"{created} added, {replaced} replaced, {deleted} deleted.")
         return HttpResponseRedirect(request.path)
 
