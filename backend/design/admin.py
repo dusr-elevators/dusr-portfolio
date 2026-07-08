@@ -130,9 +130,56 @@ class OptionVariantAdmin(admin.ModelAdmin):
             })
         return matrices
 
+    def _save_matrix(self, request):
+        image_field = forms.ImageField()
+        changes = []  # (row_option, col_option, upload, delete_flag)
+        errors = []
+        for dep_cat in self._dependency_pairs():
+            rows = dep_cat.options.filter(is_active=True)
+            cols = dep_cat.depends_on_category.options.filter(is_active=True)
+            for row in rows:
+                for col in cols:
+                    key = f"{row.id}__{col.id}"
+                    delete = bool(request.POST.get(f"delete__{key}"))
+                    upload = request.FILES.get(f"image__{key}")
+                    if not delete and upload:
+                        try:
+                            image_field.clean(upload)
+                        except ValidationError:
+                            errors.append(f"{row.name_en} × {col.name_en}: not a valid image.")
+                            continue
+                    if delete or upload:
+                        changes.append((row, col, upload, delete))
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            messages.error(request, "Nothing was saved. Fix the files above and try again.")
+            return HttpResponseRedirect(request.path)
+
+        created = replaced = deleted = 0
+        for row, col, upload, delete in changes:
+            variant = OptionVariant.objects.filter(option=row, depends_on_option=col).first()
+            if delete:
+                if variant:
+                    variant.projection_image.delete(save=False)
+                    variant.delete()
+                    deleted += 1
+            elif variant:
+                variant.projection_image.delete(save=False)
+                variant.projection_image = upload
+                variant.save()
+                replaced += 1
+            else:
+                OptionVariant.objects.create(option=row, depends_on_option=col, projection_image=upload)
+                created += 1
+        messages.success(request, f"{created} added, {replaced} replaced, {deleted} deleted.")
+        return HttpResponseRedirect(request.path)
+
     def changelist_view(self, request, extra_context=None):
         if not self.has_change_permission(request):
             raise PermissionDenied
+        if request.method == 'POST':
+            return self._save_matrix(request)
         context = {
             **self.admin_site.each_context(request),
             'title': 'Variant images',

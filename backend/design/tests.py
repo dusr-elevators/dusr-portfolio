@@ -267,3 +267,84 @@ class MatrixAdminGetTest(TestCase):
         ComponentCategory.objects.all().delete()
         response = self.client.get(self.url)
         self.assertContains(response, "Depends on category")
+
+
+import base64
+
+TINY_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
+
+
+@override_settings(MEDIA_ROOT=MATRIX_MEDIA_ROOT)
+class MatrixAdminPostTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.admin_user = User.objects.create_superuser("matrixpost", "p@x.com", "pass")
+        self.client.force_login(self.admin_user)
+        self.walls = ComponentCategory.objects.create(name_en="Walls", name_ar="Walls", layer_order=1)
+        self.mirror = ComponentCategory.objects.create(
+            name_en="Mirror", name_ar="Mirror", layer_order=2, depends_on_category=self.walls,
+        )
+        self.marble = make_option(self.walls, "Marble")
+        self.top = make_option(self.mirror, "Top")
+        self.url = reverse("admin:design_optionvariant_changelist")
+
+    def _key(self):
+        return f"{self.top.id}__{self.marble.id}"
+
+    def _make_variant(self):
+        return OptionVariant.objects.create(
+            option=self.top, depends_on_option=self.marble,
+            projection_image=SimpleUploadedFile("old.png", TINY_PNG, content_type="image/png"),
+        )
+
+    def test_post_creates_variant(self):
+        response = self.client.post(self.url, {
+            f"image__{self._key()}": SimpleUploadedFile("new.png", TINY_PNG, content_type="image/png"),
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(OptionVariant.objects.count(), 1)
+        variant = OptionVariant.objects.get()
+        self.assertEqual(variant.option, self.top)
+        self.assertEqual(variant.depends_on_option, self.marble)
+
+    def test_post_replaces_existing_variant(self):
+        variant = self._make_variant()
+        old_name = variant.projection_image.name
+        self.client.post(self.url, {
+            f"image__{self._key()}": SimpleUploadedFile("newer.png", TINY_PNG, content_type="image/png"),
+        })
+        variant.refresh_from_db()
+        self.assertEqual(OptionVariant.objects.count(), 1)
+        self.assertNotEqual(variant.projection_image.name, old_name)
+
+    def test_post_deletes_variant(self):
+        self._make_variant()
+        response = self.client.post(self.url, {f"delete__{self._key()}": "on"})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(OptionVariant.objects.count(), 0)
+
+    def test_delete_wins_over_simultaneous_file(self):
+        self._make_variant()
+        self.client.post(self.url, {
+            f"delete__{self._key()}": "on",
+            f"image__{self._key()}": SimpleUploadedFile("x.png", TINY_PNG, content_type="image/png"),
+        })
+        self.assertEqual(OptionVariant.objects.count(), 0)
+
+    def test_empty_post_changes_nothing(self):
+        self._make_variant()
+        self.client.post(self.url, {})
+        self.assertEqual(OptionVariant.objects.count(), 1)
+
+    def test_invalid_image_aborts_entire_save(self):
+        granite = make_option(self.walls, "Granite")
+        response = self.client.post(self.url, {
+            f"image__{self._key()}": SimpleUploadedFile("good.png", TINY_PNG, content_type="image/png"),
+            f"image__{self.top.id}__{granite.id}": SimpleUploadedFile(
+                "bad.txt", b"not an image", content_type="text/plain",
+            ),
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(OptionVariant.objects.count(), 0)  # nothing saved
