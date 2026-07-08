@@ -130,23 +130,29 @@ class OptionVariantAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         created = replaced = deleted = 0
+        old_files = []  # storage files to remove only after the transaction actually commits
         with transaction.atomic():
             for row, col, upload, delete in changes:
                 variant = OptionVariant.objects.filter(option=row, depends_on_option=col).first()
                 if delete:
                     if variant:
-                        variant.projection_image.delete(save=False)
+                        old_files.append(variant.projection_image)  # capture before the row is deleted
                         variant.delete()
                         deleted += 1
                 elif variant:
-                    variant.projection_image.delete(save=False)
+                    old_files.append(variant.projection_image)  # capture before the field is reassigned
                     variant.projection_image = upload
                     variant.save()
                     replaced += 1
                 else:
                     OptionVariant.objects.create(option=row, depends_on_option=col, projection_image=upload)
                     created += 1
-        messages.success(request, f"{created} added, {replaced} replaced, {deleted} deleted.")
+            if old_files:
+                transaction.on_commit(lambda files=old_files: [f.delete(save=False) for f in files])
+        if changes:
+            messages.success(request, f"{created} added, {replaced} replaced, {deleted} deleted.")
+        else:
+            messages.info(request, "No changes to save.")
         return HttpResponseRedirect(request.path)
 
     def changelist_view(self, request, extra_context=None):

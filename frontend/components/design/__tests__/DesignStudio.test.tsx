@@ -1,22 +1,28 @@
 /**
- * Unit tests for DesignStudio and isOptionAvailable function
+ * Behavior scenarios for DesignStudio's dependent-category (Mirror -> Walls)
+ * selection logic (documentation — no test runner is wired up in this
+ * project; this file is kept type-checked by `npm run typecheck`).
  *
- * This file documents the expected behavior of the option availability logic
- * used in DesignStudio to determine which mirror/component options are available
- * based on the currently selected wall/parent option.
- *
- * The function checks if a ComponentOption has a variant that matches the given
- * parent option ID. This is used to:
- * 1. Disable unavailable options in the UI
- * 2. Auto-reset selections when the parent selection changes
+ * Contract:
+ * 1. isOptionAvailable(option, parentId) — copied verbatim from
+ *    DesignStudio.tsx:
+ *      - no parentId selected              -> false
+ *      - option has no variants            -> false
+ *      - a variant matches the parent      -> true
+ * 2. Dependent-category UX: options WITHOUT a variant for the selected
+ *    parent are HIDDEN from the radio list entirely (never rendered
+ *    disabled). A built-in "None" radio — not a DB row — is always the
+ *    first item (see DependentOptionRadioList.tsx). Selecting it removes
+ *    the category from `selections` (handleDependentSelect(null)).
+ * 3. Reset contract: when the parent selection changes and the current
+ *    dependent selection has no variant for the new parent, that
+ *    selection is REMOVED from `selections` — the same outcome as
+ *    picking "None". There is no DB-row fallback hunting.
  */
 
-import type { ComponentOption, ComponentCategory } from '../types';
+import type { ComponentCategory, ComponentOption, Selections } from '../types';
 
-/**
- * Mock implementation of isOptionAvailable for documentation
- * The actual implementation is in DesignStudio.tsx
- */
+/** Copied verbatim from DesignStudio.tsx. */
 function isOptionAvailable(
   option: ComponentOption,
   currentParentOptionId: number | undefined
@@ -26,342 +32,119 @@ function isOptionAvailable(
   return option.variants.some(v => v.depends_on_option === currentParentOptionId);
 }
 
-// Test scenarios for isOptionAvailable
-const testScenarios = {
-  'Option available for parent': {
-    test: () => {
-      const option: ComponentOption = {
-        id: 20,
-        name_ar: 'مرآة العلوية',
-        name_en: 'Top Mirror',
-        thumbnail: '/img/top-mirror.png',
-        projection_image: '/img/top-marble.png',
-        sort_order: 1,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/top-marble.png' }
-        ]
-      };
-      const result = isOptionAvailable(option, 10);
-      return result === true;
-    },
-    expected: true,
-    description: 'Top Mirror is available for marble wall (id: 10)'
-  },
-
-  'Option unavailable for parent': {
-    test: () => {
-      const option: ComponentOption = {
-        id: 20,
-        name_ar: 'مرآة العلوية',
-        name_en: 'Top Mirror',
-        thumbnail: '/img/top-mirror.png',
-        projection_image: '/img/top-marble.png',
-        sort_order: 1,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/top-marble.png' }
-          // Note: no variant for option 11 (wood wall)
-        ]
-      };
-      const result = isOptionAvailable(option, 11);
-      return result === false;
-    },
-    expected: false,
-    description: 'Top Mirror is NOT available for wood wall (id: 11)'
-  },
-
-  'None option available for all parents': {
-    test: () => {
-      const option: ComponentOption = {
-        id: 21,
-        name_ar: 'لا شيء',
-        name_en: 'None',
-        thumbnail: '/img/none.png',
-        projection_image: '/img/transparent.png',
-        sort_order: 2,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/transparent.png' },
-          { depends_on_option: 11, projection_image: '/img/transparent.png' }
-        ]
-      };
-      return isOptionAvailable(option, 10) && isOptionAvailable(option, 11);
-    },
-    expected: true,
-    description: 'None option is available for both marble (10) and wood (11)'
-  },
-
-  'Undefined parent returns false': {
-    test: () => {
-      const option: ComponentOption = {
-        id: 20,
-        name_ar: 'مرآة العلوية',
-        name_en: 'Top Mirror',
-        thumbnail: '/img/top-mirror.png',
-        projection_image: '/img/top-marble.png',
-        sort_order: 1,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/top-marble.png' }
-        ]
-      };
-      const result = isOptionAvailable(option, undefined);
-      return result === false;
-    },
-    expected: false,
-    description: 'Returns false when parent option is undefined'
-  }
-};
-
-// Log test results
-console.log('DesignStudio isOptionAvailable Unit Tests\n');
-Object.entries(testScenarios).forEach(([name, scenario]) => {
-  const passed = scenario.test() === scenario.expected;
-  const status = passed ? '✓ PASS' : '✗ FAIL';
-  console.log(`${status}: ${name}`);
-  console.log(`  Description: ${scenario.description}`);
-});
-
-/**
- * Extracted reset logic from DesignStudio.handleSelect()
- * This function applies the auto-reset logic when a parent category selection changes.
- */
-function applyAutoReset(
-  selections: Record<number, ComponentOption>,
+/** Mirrors the reset loop inside DesignStudio.handleSelect(). */
+function applyParentChangeReset(
+  selections: Selections,
   changedCategoryId: number,
-  newOption: ComponentOption,
+  newParentOption: ComponentOption,
   categories: ComponentCategory[]
-): Record<number, ComponentOption> {
-  let next = { ...selections, [changedCategoryId]: newOption };
-
-  // Auto-reset dependent category selections if they're no longer available
+): Selections {
+  let next: Selections = { ...selections, [changedCategoryId]: newParentOption };
   for (const depCategory of categories) {
     if (depCategory.depends_on_category === changedCategoryId && next[depCategory.id]) {
-      const currentSelection = next[depCategory.id];
-      if (!isOptionAvailable(currentSelection, newOption.id)) {
-        // Find a fallback option that works with the new parent option
-        const noneOption = depCategory.options.find(o => {
-          if (!o.variants) return false;
-          return o.variants.some(v => v.depends_on_option === newOption.id);
-        });
-
-        if (noneOption) {
-          next = { ...next, [depCategory.id]: noneOption };
-        } else {
-          // If no fallback found, remove the selection
-          const { [depCategory.id]: _, ...cleaned } = next;
-          next = cleaned;
-        }
+      if (!isOptionAvailable(next[depCategory.id], newParentOption.id)) {
+        const { [depCategory.id]: _removed, ...cleaned } = next;
+        next = cleaned;
       }
     }
   }
-
   return next;
 }
 
-/**
- * Integration test specification for auto-reset on wall change
- *
- * This test validates that when a wall category selection changes,
- * any dependent category (e.g., Mirror) that has no variant for the
- * new wall is automatically reset to the "None" option.
- *
- * Test case from Task 2 brief: "resets mirror selection to None when
- * changing wall makes current mirror unavailable"
- */
-const testCategories: ComponentCategory[] = [
-  {
-    id: 1,
-    name_ar: 'الجدران',
-    name_en: 'Walls',
-    layer_order: 1,
-    is_required: true,
-    icon: 'square',
-    options: [
-      {
-        id: 10,
-        name_ar: 'رخام',
-        name_en: 'Marble',
-        thumbnail: '/img/marble.png',
-        projection_image: '/img/marble-full.png',
-        sort_order: 1
-      },
-      {
-        id: 11,
-        name_ar: 'خشب',
-        name_en: 'Wood',
-        thumbnail: '/img/wood.png',
-        projection_image: '/img/wood-full.png',
-        sort_order: 2
-      }
-    ]
-  },
-  {
-    id: 2,
-    name_ar: 'المرايا',
-    name_en: 'Mirrors',
-    layer_order: 2,
-    is_required: false,
-    icon: 'mirror',
-    depends_on_category: 1,
-    options: [
-      {
-        id: 20,
-        name_ar: 'مرآة العلوية',
-        name_en: 'Top Mirror',
-        thumbnail: '/img/top-mirror.png',
-        projection_image: '/img/top-marble.png',
-        sort_order: 1,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/top-marble.png' }
-          // Note: no variant for option 11 (wood wall) - Top Mirror unavailable for wood
-        ]
-      },
-      {
-        id: 21,
-        name_ar: 'لا شيء',
-        name_en: 'None',
-        thumbnail: '/img/none.png',
-        projection_image: '/img/transparent.png',
-        sort_order: 2,
-        variants: [
-          { depends_on_option: 10, projection_image: '/img/transparent.png' },
-          { depends_on_option: 11, projection_image: '/img/transparent.png' }
-        ]
-      }
-    ]
+/** Mirrors DesignStudio.handleDependentSelect(). */
+function applyDependentSelect(
+  selections: Selections,
+  activeTab: number,
+  option: ComponentOption | null
+): Selections {
+  if (option) {
+    return { ...selections, [activeTab]: option };
   }
+  const { [activeTab]: _removed, ...next } = selections;
+  return next;
+}
+
+const marbleWall: ComponentOption = {
+  id: 10, name_ar: 'رخام', name_en: 'Marble',
+  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sort_order: 1,
+};
+
+const woodWall: ComponentOption = {
+  id: 11, name_ar: 'خشب', name_en: 'Wood',
+  thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png', sort_order: 2,
+};
+
+// Only available for marble (10).
+const topMirror: ComponentOption = {
+  id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
+  thumbnail: '/img/top-mirror.png', projection_image: null, sort_order: 1,
+  variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
+};
+
+// Available for both marble (10) and wood (11).
+const sideMirror: ComponentOption = {
+  id: 21, name_ar: 'مرآة جانبية', name_en: 'Side Mirror',
+  thumbnail: '/img/side-mirror.png', projection_image: null, sort_order: 2,
+  variants: [
+    { depends_on_option: 10, projection_image: '/img/side-on-marble.png' },
+    { depends_on_option: 11, projection_image: '/img/side-on-wood.png' },
+  ],
+};
+
+const wallsCategory: ComponentCategory = {
+  id: 1, name_ar: 'الجدران', name_en: 'Walls', layer_order: 1,
+  is_required: true, icon: 'PanelTop', depends_on_category: null,
+  options: [marbleWall, woodWall],
+};
+
+const mirrorCategory: ComponentCategory = {
+  id: 2, name_ar: 'المرايا', name_en: 'Mirrors', layer_order: 2,
+  is_required: false, icon: 'Square', depends_on_category: 1,
+  options: [topMirror, sideMirror],
+};
+
+const categories: ComponentCategory[] = [wallsCategory, mirrorCategory];
+
+const scenarios: { name: string; actual: boolean; expected: boolean }[] = [
+  {
+    name: 'isOptionAvailable is true when a variant matches the parent',
+    actual: isOptionAvailable(topMirror, 10),
+    expected: true,
+  },
+  {
+    name: 'isOptionAvailable is false when no parent is selected',
+    actual: isOptionAvailable(topMirror, undefined),
+    expected: false,
+  },
+  {
+    name: 'dependent list HIDES (not disables) options with no variant for the selected parent',
+    // Same filter DesignStudio.tsx applies before handing options to
+    // DependentOptionRadioList: topMirror has no variant for wood (11),
+    // so it must be absent from the available list, not present-but-disabled.
+    actual: mirrorCategory.options
+      .filter(o => isOptionAvailable(o, woodWall.id))
+      .map(o => o.id)
+      .includes(topMirror.id),
+    expected: false,
+  },
+  {
+    name: 'changing the parent removes a dependent selection with no variant for the new parent (no DB fallback)',
+    actual: (() => {
+      const initial: Selections = { 1: marbleWall, 2: topMirror };
+      const result = applyParentChangeReset(initial, 1, woodWall, categories);
+      return 2 in result;
+    })(),
+    expected: false,
+  },
+  {
+    name: 'selecting the built-in "None" removes the category from selections entirely',
+    actual: (() => {
+      const initial: Selections = { 1: marbleWall, 2: topMirror };
+      const result = applyDependentSelect(initial, 2, null);
+      return 2 in result;
+    })(),
+    expected: false,
+  },
 ];
 
-// Test 1: Data structure validation
-const preconditionTest = {
-  test: () => {
-    const wallCategory = testCategories.find(c => c.id === 1);
-    const mirrorCategory = testCategories.find(c => c.id === 2);
-    const topMirror = mirrorCategory?.options.find(o => o.id === 20);
-    const noneOption = mirrorCategory?.options.find(o => o.id === 21);
-
-    // Assertion 1: Categories exist and have correct dependencies
-    const test1 = wallCategory && mirrorCategory && mirrorCategory.depends_on_category === 1;
-
-    // Assertion 2: Top Mirror is available for Marble (option 10)
-    const test2 = topMirror && isOptionAvailable(topMirror, 10);
-
-    // Assertion 3: Top Mirror is NOT available for Wood (option 11)
-    const test3 = topMirror && !isOptionAvailable(topMirror, 11);
-
-    // Assertion 4: None option is available for both Marble and Wood
-    const test4 = noneOption && isOptionAvailable(noneOption, 10) && isOptionAvailable(noneOption, 11);
-
-    return test1 && test2 && test3 && test4;
-  },
-  expected: true,
-  description: 'Test data is correctly structured with Marble/Wood walls and Top Mirror/None options'
-};
-
-// Test 2: Auto-reset logic when wall changes
-const autoResetLogicTest = {
-  test: () => {
-    // Setup: User has selected Marble wall and Top Mirror
-    const marbleOption = testCategories[0].options.find(o => o.id === 10)!;
-    const topMirrorOption = testCategories[1].options.find(o => o.id === 20)!;
-    const woodOption = testCategories[0].options.find(o => o.id === 11)!;
-    const noneOption = testCategories[1].options.find(o => o.id === 21)!;
-
-    const initialSelections = {
-      1: marbleOption,  // Walls: Marble
-      2: topMirrorOption // Mirrors: Top Mirror
-    };
-
-    // Action: User clicks Wood wall button
-    // This simulates the handleSelect call with the Wood option
-    const resultSelections = applyAutoReset(initialSelections, 1, woodOption, testCategories);
-
-    // Assertions:
-    // 1. Wall selection should change to Wood (id: 11)
-    const test1 = resultSelections[1].id === 11;
-
-    // 2. Mirror selection should be reset to None (id: 21)
-    const test2 = resultSelections[2].id === 21;
-
-    // 3. Mirror selection should be the None option object
-    const test3 = resultSelections[2] === noneOption;
-
-    // 4. Other categories remain untouched
-    const test4 = Object.keys(resultSelections).length === 2;
-
-    return test1 && test2 && test3 && test4;
-  },
-  expected: true,
-  description: 'Auto-reset: When wall changes from Marble to Wood, mirror selection resets from Top Mirror (20) to None (21)'
-};
-
-// Test 3: No reset when new option is still available
-const noResetWhenAvailableTest = {
-  test: () => {
-    // Setup: Same as Test 2
-    const marbleOption = testCategories[0].options.find(o => o.id === 10)!;
-    const topMirrorOption = testCategories[1].options.find(o => o.id === 20)!;
-    const noneOption = testCategories[1].options.find(o => o.id === 21)!;
-
-    const initialSelections = {
-      1: marbleOption,  // Walls: Marble
-      2: noneOption     // Mirrors: None (available for all walls)
-    };
-
-    // Action: User clicks Marble again (same wall)
-    const resultSelections = applyAutoReset(initialSelections, 1, marbleOption, testCategories);
-
-    // Assertion: Since None option is available for Marble, it should NOT be reset
-    const test1 = resultSelections[2].id === 21;
-    const test2 = resultSelections[2] === noneOption;
-
-    return test1 && test2;
-  },
-  expected: true,
-  description: 'No reset: When wall stays Marble, None option selection is preserved'
-};
-
-// Test 4: Reset only affected dependent categories
-const onlyAffectedDependentTest = {
-  test: () => {
-    // This test verifies that only categories depending on the changed category are affected
-    // (Adding a hypothetical third category for completeness)
-    const marbleOption = testCategories[0].options.find(o => o.id === 10)!;
-    const topMirrorOption = testCategories[1].options.find(o => o.id === 20)!;
-
-    const initialSelections = {
-      1: marbleOption,  // Walls: Marble
-      2: topMirrorOption // Mirrors: Top Mirror
-    };
-
-    // Action: User changes a different category (doesn't exist in this test, so just verify logic)
-    const resultSelections = applyAutoReset(initialSelections, 1, marbleOption, testCategories);
-
-    // Since we're changing category 1 to the same value, nothing should change
-    const test1 = resultSelections[1].id === 10;
-    const test2 = resultSelections[2].id === 20;
-
-    return test1 && test2;
-  },
-  expected: true,
-  description: 'Only categories that depend on the changed category are affected'
-};
-
-// Log all test results
-console.log('DesignStudio Auto-Reset on Wall Change - Comprehensive Tests\n');
-
-const tests = [
-  preconditionTest,
-  autoResetLogicTest,
-  noResetWhenAvailableTest,
-  onlyAffectedDependentTest
-];
-
-let allPassed = true;
-tests.forEach((test, index) => {
-  const passed = test.test() === test.expected;
-  allPassed = allPassed && passed;
-  const status = passed ? '✓ PASS' : '✗ FAIL';
-  console.log(`Test ${index + 1}: ${status}`);
-  console.log(`  Description: ${test.description}`);
-});
-
-console.log(`\nOverall: ${allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED'}`);
+export const allScenariosPass = scenarios.every(s => s.actual === s.expected);

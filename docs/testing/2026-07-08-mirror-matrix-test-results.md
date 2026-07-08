@@ -155,3 +155,30 @@ Verified via code reading (not claimed as an observed PASS) that the real seed d
 2. Studio EN: wall "65" → Mirror tab shows "None" + "1"; other walls → Mirror tab shows only "None"; selecting/deselecting mirror updates canvas; switching away from wall "65" resets mirror selection to "None".
 3. Studio AR (`http://localhost:3001/design`, not `/ar/design`): same as above, plus confirm RTL layout and Arabic labels ("بدون" first).
 4. PDF export: exported file's mirror image matches the on-screen canvas.
+
+## Pre-deploy data check
+
+The old frontend used real `ComponentOption` DB rows named "None" / "لا شيء" in dependent
+categories as reset fallbacks (see the old, now-deleted, fallback-hunting logic). The new
+frontend no longer looks for those rows — `DependentOptionRadioList` renders its own built-in
+"None" radio (not a DB row), and deselecting simply removes the category from `selections`.
+
+Before deploying this branch, check production for leftover "None" rows in dependent
+categories. If any exist, delete them (and their `OptionVariant` rows) — a leftover row would
+render as a second, redundant "None" choice in the Studio radio list **and** occupy its own row
+in the admin mirror×wall matrix.
+
+Copy-pasteable check (run against production before deploying):
+
+```
+docker compose exec backend python manage.py shell -c "from design.models import ComponentOption; print(list(ComponentOption.objects.filter(category__depends_on_category__isnull=False, name_en__in=['None']).values('id','name_en')))"
+```
+
+Also check the Arabic name (`name_ar='لا شيء'`):
+
+```
+docker compose exec backend python manage.py shell -c "from design.models import ComponentOption; print(list(ComponentOption.objects.filter(category__depends_on_category__isnull=False, name_ar='لا شيء').values('id','name_ar')))"
+```
+
+If either prints non-empty results, delete those `ComponentOption` rows (their `OptionVariant`
+rows cascade-delete with them) before the new frontend goes live.

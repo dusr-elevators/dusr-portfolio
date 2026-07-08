@@ -13,6 +13,8 @@ interface DependentOptionRadioListProps {
   lang: Lang;
   parentName: string;
   parentSelected: boolean;
+  /** Accessible name for the radiogroup, e.g. the active category's localized name. */
+  label?: string;
 }
 
 export default function DependentOptionRadioList({
@@ -22,6 +24,7 @@ export default function DependentOptionRadioList({
   lang,
   parentName,
   parentSelected,
+  label,
 }: DependentOptionRadioListProps) {
   const itemClass = (active: boolean) =>
     `flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
@@ -31,7 +34,12 @@ export default function DependentOptionRadioList({
     }`;
 
   return (
-    <div className="flex flex-col gap-2" role="radiogroup" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div
+      className="flex flex-col gap-2"
+      role="radiogroup"
+      aria-label={label}
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+    >
       <label className={itemClass(selectedId == null)}>
         <input
           type="radio"
@@ -43,7 +51,7 @@ export default function DependentOptionRadioList({
         <span className="text-sm text-[#e5e2e1]">{lang === 'ar' ? 'بدون' : 'None'}</span>
       </label>
 
-      {!parentSelected && (
+      {!parentSelected && parentName && (
         <p className="text-[#888] text-sm py-2">
           {lang === 'ar' ? `اختر ${parentName} أولاً` : `Select ${parentName} first`}
         </p>

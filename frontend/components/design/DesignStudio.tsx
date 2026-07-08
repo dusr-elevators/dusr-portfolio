@@ -179,6 +179,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
                         lang={lang}
                         parentName={parentCat ? (lang === 'ar' ? parentCat.name_ar : parentCat.name_en) : ''}
                         parentSelected={!!parentSelection}
+                        label={lang === 'ar' ? activeCategory.name_ar : activeCategory.name_en}
                       />
                     );
                   })()
