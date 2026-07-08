@@ -95,14 +95,21 @@ class ComponentOption(models.Model):
     thumbnail = models.ImageField(
         _('Thumbnail'),
         upload_to=design_thumbnail_path,
-        help_text=_('Small preview image shown in the selection grid.'),
+        blank=True,
+        help_text=_(
+            'Small preview image shown in the selection grid. '
+            'Optional for options in a dependent category (e.g. mirrors).'
+        ),
     )
     projection_image = models.ImageField(
         _('Projection image'),
         upload_to=design_projection_path,
+        blank=True,
         help_text=_(
             'Transparent PNG placed on the 2D canvas. '
-            'All projection images must share the same canvas dimensions.'
+            'All projection images must share the same canvas dimensions. '
+            'Leave empty for options in a dependent category (e.g. mirrors) — '
+            'their images are managed per wall in the Option variants matrix.'
         ),
     )
     sort_order = models.PositiveIntegerField(_('Sort order'), default=0)

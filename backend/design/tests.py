@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from .models import ComponentCategory, ComponentOption, OptionVariant
+from .api.serializers import ComponentOptionSerializer
 
 
 def make_option(category, name):
@@ -186,3 +187,21 @@ class AdminInlineGatingTest(TestCase):
 
     def test_inline_hidden_when_adding_new_option(self):
         self.assertEqual(self.admin.get_inlines(request=None, obj=None), [])
+
+
+class OptionalImagesTest(TestCase):
+    def setUp(self):
+        self.walls = ComponentCategory.objects.create(name_en="Walls", name_ar="Walls", layer_order=1)
+        self.mirror = ComponentCategory.objects.create(
+            name_en="Mirror", name_ar="Mirror", layer_order=2, depends_on_category=self.walls,
+        )
+
+    def test_option_images_are_optional(self):
+        opt = ComponentOption(category=self.mirror, name_en="Top", name_ar="Top")
+        opt.full_clean()  # must not raise once thumbnail/projection_image are blank=True
+
+    def test_option_without_images_serializes_none(self):
+        opt = ComponentOption.objects.create(category=self.mirror, name_en="Bare", name_ar="Bare")
+        data = ComponentOptionSerializer(opt).data
+        self.assertIsNone(data["thumbnail"])
+        self.assertIsNone(data["projection_image"])
