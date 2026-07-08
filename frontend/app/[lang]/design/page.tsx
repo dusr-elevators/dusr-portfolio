@@ -23,12 +23,13 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
     const internalBase = (process.env.API_INTERNAL_URL || '').replace(/\/$/, '');
     if (!internalBase) return list;
     const fixUrl = (url: string) => url.replace(internalBase, '');
+    const fixUrlNullable = (url: string | null) => (url ? fixUrl(url) : url);
     return list.map(cat => ({
       ...cat,
       options: cat.options.map(opt => ({
         ...opt,
-        thumbnail: fixUrl(opt.thumbnail),
-        projection_image: fixUrl(opt.projection_image),
+        thumbnail: fixUrlNullable(opt.thumbnail),
+        projection_image: fixUrlNullable(opt.projection_image),
         variants: opt.variants?.map(v => ({
           ...v,
           projection_image: fixUrl(v.projection_image),

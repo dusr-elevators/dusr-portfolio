@@ -7,8 +7,8 @@ export interface ComponentOption {
   id: number;
   name_ar: string;
   name_en: string;
-  thumbnail: string;
-  projection_image: string;
+  thumbnail: string | null;
+  projection_image: string | null;
   sort_order: number;
   variants?: OptionVariant[];
 }

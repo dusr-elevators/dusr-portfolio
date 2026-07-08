@@ -44,6 +44,7 @@ export default function ProjectionCanvas({ categories, selections, lang, canvasR
             const selected = selections[cat.id];
             if (!selected) return null;
             const src = resolveLayerImage(cat, selected, selections);
+            if (!src) return null;
             return (
               <Image
                 key={cat.id}

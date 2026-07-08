@@ -42,13 +42,15 @@ export default function OptionGrid({ options, selectedId, onSelect, lang, disabl
             } ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <div className="aspect-square bg-[#1a1a1a] relative">
-              <Image
-                src={option.thumbnail}
-                alt={name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-              />
+              {option.thumbnail && (
+                <Image
+                  src={option.thumbnail}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                />
+              )}
             </div>
             <div className="px-2 py-1.5 bg-[#1a1a1a] text-xs text-center text-[#e5e2e1] truncate">
               {name}
