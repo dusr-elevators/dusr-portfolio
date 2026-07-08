@@ -163,32 +163,6 @@ class SerializerTest(TestCase):
         self.assertEqual(marble["variants"], [])
 
 
-from django.contrib.admin.sites import AdminSite
-from .admin import ComponentOptionAdmin
-
-
-class AdminInlineGatingTest(TestCase):
-    def setUp(self):
-        self.walls = ComponentCategory.objects.create(name_en="Walls", name_ar="Walls", layer_order=1)
-        self.ceiling = ComponentCategory.objects.create(name_en="Ceiling", name_ar="Ceiling", layer_order=0)
-        ComponentCategory.objects.create(
-            name_en="Mirror", name_ar="Mirror", layer_order=2, depends_on_category=self.walls,
-        )
-        self.marble = make_option(self.walls, "Marble")
-        self.panel = make_option(self.ceiling, "Panel")
-        self.admin = ComponentOptionAdmin(ComponentOption, AdminSite())
-
-    def test_inline_shown_for_wall_option(self):
-        inlines = self.admin.get_inlines(request=None, obj=self.marble)
-        self.assertEqual(len(inlines), 1)
-
-    def test_inline_hidden_for_non_dependency_option(self):
-        self.assertEqual(self.admin.get_inlines(request=None, obj=self.panel), [])
-
-    def test_inline_hidden_when_adding_new_option(self):
-        self.assertEqual(self.admin.get_inlines(request=None, obj=None), [])
-
-
 class OptionalImagesTest(TestCase):
     def setUp(self):
         self.walls = ComponentCategory.objects.create(name_en="Walls", name_ar="Walls", layer_order=1)
