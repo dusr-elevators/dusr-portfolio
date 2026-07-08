@@ -1,5 +1,10 @@
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
 from django.utils.html import format_html
+
 from .models import ComponentCategory, ComponentOption, LucideIconChoice, OptionVariant
 
 
@@ -82,3 +87,56 @@ class ComponentOptionAdmin(admin.ModelAdmin):
         ).exists():
             return [OptionVariantInline]
         return []
+
+
+@admin.register(OptionVariant)
+class OptionVariantAdmin(admin.ModelAdmin):
+    """Matrix editor: one table per dependency pair (e.g. Mirror -> Walls);
+    rows are dependent options, columns are parent options, one image per cell."""
+
+    change_list_template = 'admin/design/optionvariant/change_list.html'
+
+    def has_add_permission(self, request):
+        return False  # the matrix is the only editing surface
+
+    def _dependency_pairs(self):
+        return ComponentCategory.objects.filter(
+            depends_on_category__isnull=False, is_active=True,
+        ).select_related('depends_on_category')
+
+    def _build_matrices(self):
+        matrices = []
+        for dep_cat in self._dependency_pairs():
+            rows = list(dep_cat.options.filter(is_active=True))
+            cols = list(dep_cat.depends_on_category.options.filter(is_active=True))
+            variants = {
+                (v.option_id, v.depends_on_option_id): v
+                for v in OptionVariant.objects.filter(option__in=rows, depends_on_option__in=cols)
+            }
+            matrices.append({
+                'dependent': dep_cat,
+                'parent': dep_cat.depends_on_category,
+                'columns': cols,
+                'rows': [
+                    {
+                        'option': row,
+                        'cells': [
+                            {'parent': col, 'variant': variants.get((row.id, col.id))}
+                            for col in cols
+                        ],
+                    }
+                    for row in rows
+                ],
+            })
+        return matrices
+
+    def changelist_view(self, request, extra_context=None):
+        if not self.has_change_permission(request):
+            raise PermissionDenied
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Variant images',
+            'opts': self.model._meta,
+            'matrices': self._build_matrices(),
+        }
+        return TemplateResponse(request, self.change_list_template, context)

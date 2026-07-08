@@ -205,3 +205,65 @@ class OptionalImagesTest(TestCase):
         data = ComponentOptionSerializer(opt).data
         self.assertIsNone(data["thumbnail"])
         self.assertIsNone(data["projection_image"])
+
+
+import tempfile
+
+from django.contrib.auth import get_user_model
+from django.test import override_settings
+from django.urls import reverse
+
+MATRIX_MEDIA_ROOT = tempfile.mkdtemp()
+
+
+@override_settings(MEDIA_ROOT=MATRIX_MEDIA_ROOT)
+class MatrixAdminGetTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.admin_user = User.objects.create_superuser("matrixadmin", "m@x.com", "pass")
+        self.client.force_login(self.admin_user)
+        self.walls = ComponentCategory.objects.create(name_en="Walls", name_ar="Walls", layer_order=1)
+        self.mirror = ComponentCategory.objects.create(
+            name_en="Mirror", name_ar="Mirror", layer_order=2, depends_on_category=self.walls,
+        )
+        self.marble = make_option(self.walls, "Marble")
+        self.top = make_option(self.mirror, "Top")
+        self.url = reverse("admin:design_optionvariant_changelist")
+
+    def test_anonymous_is_redirected_to_login(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_staff_without_permission_gets_403(self):
+        User = get_user_model()
+        staff = User.objects.create_user("plainstaff", "s@x.com", "pass", is_staff=True)
+        self.client.force_login(staff)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_matrix_renders_cell_inputs(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'name="image__{self.top.id}__{self.marble.id}"')
+        self.assertContains(response, "Mirror images per Walls")
+
+    def test_existing_variant_shows_preview_and_delete(self):
+        OptionVariant.objects.create(
+            option=self.top, depends_on_option=self.marble,
+            projection_image=SimpleUploadedFile("v.png", b"img", content_type="image/png"),
+        )
+        response = self.client.get(self.url)
+        self.assertContains(response, f'name="delete__{self.top.id}__{self.marble.id}"')
+
+    def test_inactive_options_excluded(self):
+        hidden = ComponentOption.objects.create(
+            category=self.mirror, name_en="Hidden", name_ar="Hidden", is_active=False,
+        )
+        response = self.client.get(self.url)
+        self.assertNotContains(response, f'image__{hidden.id}__')
+
+    def test_empty_state_without_dependent_categories(self):
+        ComponentCategory.objects.all().delete()
+        response = self.client.get(self.url)
+        self.assertContains(response, "Depends on category")
