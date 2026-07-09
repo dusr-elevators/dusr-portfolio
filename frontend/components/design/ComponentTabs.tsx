@@ -6,6 +6,8 @@ import type { ComponentCategory } from './types';
 import type { Lang } from '@/lib/lang';
 import DynamicIcon from './DynamicIcon';
 
+type RtlScrollType = 'default' | 'negative' | 'reverse';
+
 interface ComponentTabsProps {
   categories: ComponentCategory[];
   activeId: number;
@@ -14,16 +16,67 @@ interface ComponentTabsProps {
   lang: Lang;
 }
 
+let cachedRtlScrollType: RtlScrollType | null = null;
+
+function getRtlScrollType(): RtlScrollType {
+  if (cachedRtlScrollType) return cachedRtlScrollType;
+
+  const outer = document.createElement('div');
+  const inner = document.createElement('div');
+
+  outer.dir = 'rtl';
+  outer.style.cssText = 'position:absolute;top:-9999px;width:4px;height:1px;overflow:scroll;';
+  inner.style.cssText = 'width:8px;height:1px;';
+  outer.appendChild(inner);
+  document.body.appendChild(outer);
+
+  if (outer.scrollLeft > 0) {
+    cachedRtlScrollType = 'default';
+  } else {
+    outer.scrollLeft = 1;
+    cachedRtlScrollType = outer.scrollLeft === 0 ? 'negative' : 'reverse';
+  }
+
+  document.body.removeChild(outer);
+  return cachedRtlScrollType;
+}
+
 export default function ComponentTabs({ categories, activeId, onSelect, completedIds, lang }: ComponentTabsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const isRtl = lang === 'ar';
 
   const updateArrows = () => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const threshold = 4;
+
+    if (maxScroll <= threshold) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+
+    if (!isRtl) {
+      setCanScrollLeft(el.scrollLeft > threshold);
+      setCanScrollRight(el.scrollLeft < maxScroll - threshold);
+      return;
+    }
+
+    const rtlScrollType = getRtlScrollType();
+    if (rtlScrollType === 'negative') {
+      setCanScrollLeft(el.scrollLeft > -maxScroll + threshold);
+      setCanScrollRight(el.scrollLeft < -threshold);
+    } else if (rtlScrollType === 'reverse') {
+      setCanScrollLeft(el.scrollLeft < maxScroll - threshold);
+      setCanScrollRight(el.scrollLeft > threshold);
+    } else {
+      setCanScrollLeft(el.scrollLeft > threshold);
+      setCanScrollRight(el.scrollLeft < maxScroll - threshold);
+    }
   };
 
   useEffect(() => {
@@ -35,10 +88,13 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
       el?.removeEventListener('scroll', updateArrows);
       window.removeEventListener('resize', updateArrows);
     };
-  }, [categories]);
+  }, [categories, isRtl]);
 
   const scroll = (dir: 'left' | 'right') => {
-    scrollRef.current?.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+    const rtlScrollType = isRtl ? getRtlScrollType() : null;
+    const visualLeftDelta = rtlScrollType === 'reverse' ? 200 : -200;
+    const left = dir === 'left' ? visualLeftDelta : -visualLeftDelta;
+    scrollRef.current?.scrollBy({ left, behavior: 'smooth' });
   };
 
   return (
@@ -47,7 +103,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
         <button
           onClick={() => scroll('left')}
           className="shrink-0 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors"
-          aria-label="Scroll left"
+          aria-label={isRtl ? 'التمرير لليسار' : 'Scroll left'}
         >
           <ChevronLeft size={16} />
         </button>
@@ -55,6 +111,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
 
       <div
         ref={scrollRef}
+        dir={isRtl ? 'rtl' : 'ltr'}
         className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1 min-w-0"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
@@ -89,7 +146,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
         <button
           onClick={() => scroll('right')}
           className="shrink-0 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors"
-          aria-label="Scroll right"
+          aria-label={isRtl ? 'التمرير لليمين' : 'Scroll right'}
         >
           <ChevronRight size={16} />
         </button>
