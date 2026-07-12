@@ -3,18 +3,16 @@
 import Image from 'next/image';
 import type { ComponentOption } from './types';
 import type { Lang } from '@/lib/lang';
-import DynamicIcon from './DynamicIcon';
 
 interface DependentOptionRadioListProps {
   /** Only the options available for the currently selected parent option. */
   options: ComponentOption[];
   selectedId: number | null;
-  /** null = the built-in "None" choice. */
-  onSelect: (option: ComponentOption | null) => void;
+  onSelect: (option: ComponentOption) => void;
   lang: Lang;
   parentName: string;
   parentSelected: boolean;
-  /** Accessible name for the radiogroup, e.g. the active category's localized name. */
+  /** Accessible name for the option group, e.g. the active category's localized name. */
   label?: string;
 }
 
@@ -37,21 +35,10 @@ export default function DependentOptionRadioList({
   return (
     <div
       className="flex flex-col gap-2"
-      role="radiogroup"
+      role="group"
       aria-label={label}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
-      <label className={itemClass(selectedId == null)}>
-        <input
-          type="radio"
-          name="dependent-option"
-          checked={selectedId == null}
-          onChange={() => onSelect(null)}
-          className="accent-[#FF5722]"
-        />
-        <span className="text-sm text-[#e5e2e1]">{lang === 'ar' ? 'بدون' : 'None'}</span>
-      </label>
-
       {!parentSelected && parentName && (
         <p className="text-[#888] text-sm py-2">
           {lang === 'ar' ? `اختر ${parentName} أولاً` : `Select ${parentName} first`}
@@ -63,17 +50,13 @@ export default function DependentOptionRadioList({
         return (
           <label key={option.id} className={itemClass(option.id === selectedId)}>
             <input
-              type="radio"
+              type="checkbox"
               name="dependent-option"
               checked={option.id === selectedId}
               onChange={() => onSelect(option)}
               className="accent-[#FF5722]"
             />
-            {option.icon ? (
-              <span className="flex w-10 h-10 items-center justify-center rounded-lg bg-[#1a1a1a] text-[#FF5722] shrink-0">
-                <DynamicIcon name={option.icon} size={20} strokeWidth={2.25} />
-              </span>
-            ) : option.thumbnail && (
+            {option.thumbnail && (
               <span className="relative w-10 h-10 rounded-lg overflow-hidden bg-[#1a1a1a] shrink-0">
                 <Image src={option.thumbnail} alt={name} fill className="object-cover" sizes="40px" />
               </span>

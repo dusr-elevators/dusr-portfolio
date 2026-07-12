@@ -92,15 +92,6 @@ class ComponentOption(models.Model):
     )
     name_ar = models.CharField(_('Name (Arabic)'), max_length=100)
     name_en = models.CharField(_('Name (English)'), max_length=100)
-    icon = models.ForeignKey(
-        LucideIconChoice,
-        verbose_name=_('Icon'),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='options',
-        help_text=_('Optional icon shown in the Studio option selector, e.g. ArrowUp or ArrowDown for mirrors.'),
-    )
     thumbnail = models.ImageField(
         _('Thumbnail'),
         upload_to=design_thumbnail_path,
@@ -120,6 +111,11 @@ class ComponentOption(models.Model):
             'Leave empty for options in a dependent category (e.g. mirrors) — '
             'their images are managed per wall in the Option variants matrix.'
         ),
+    )
+    is_default_selected = models.BooleanField(
+        _('Selected by default'),
+        default=False,
+        help_text=_('Auto-select this option in the Studio when the user has not chosen another option.'),
     )
     sort_order = models.PositiveIntegerField(_('Sort order'), default=0)
     is_active = models.BooleanField(_('Active'), default=True)

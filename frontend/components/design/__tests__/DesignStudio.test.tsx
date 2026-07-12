@@ -10,14 +10,13 @@
  *      - option has no variants            -> false
  *      - a variant matches the parent      -> true
  * 2. Dependent-category UX: options WITHOUT a variant for the selected
- *    parent are HIDDEN from the radio list entirely (never rendered
- *    disabled). A built-in "None" radio — not a DB row — is always the
- *    first item (see DependentOptionRadioList.tsx). Selecting it removes
- *    the category from `selections` (handleDependentSelect(null)).
+ *    parent are HIDDEN from the option list entirely (never rendered
+ *    disabled). Clicking the currently selected option again removes the
+ *    category from `selections`, which is the implicit "None" state.
  * 3. Reset contract: when the parent selection changes and the current
  *    dependent selection has no variant for the new parent, that
- *    selection is REMOVED from `selections` — the same outcome as
- *    picking "None". There is no DB-row fallback hunting.
+ *    selection is REMOVED from `selections`. There is no DB-row fallback
+ *    hunting.
  */
 
 import type { ComponentCategory, ComponentOption, Selections } from '../types';
@@ -55,40 +54,40 @@ function applyParentChangeReset(
 function applyDependentSelect(
   selections: Selections,
   activeTab: number,
-  option: ComponentOption | null
+  option: ComponentOption
 ): Selections {
-  if (option) {
-    return { ...selections, [activeTab]: option };
+  if (selections[activeTab]?.id === option.id) {
+    const { [activeTab]: _removed, ...next } = selections;
+    return next;
   }
-  const { [activeTab]: _removed, ...next } = selections;
-  return next;
+  return { ...selections, [activeTab]: option };
 }
 
 const marbleWall: ComponentOption = {
   id: 10, name_ar: 'رخام', name_en: 'Marble',
-  icon: '',
-  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sort_order: 1,
+  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png',
+  is_default_selected: true, sort_order: 1,
 };
 
 const woodWall: ComponentOption = {
   id: 11, name_ar: 'خشب', name_en: 'Wood',
-  icon: '',
-  thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png', sort_order: 2,
+  thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png',
+  is_default_selected: false, sort_order: 2,
 };
 
 // Only available for marble (10).
 const topMirror: ComponentOption = {
   id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
-  icon: 'ArrowUp',
-  thumbnail: '/img/top-mirror.png', projection_image: null, sort_order: 1,
+  thumbnail: '/img/top-mirror.png', projection_image: null,
+  is_default_selected: false, sort_order: 1,
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };
 
 // Available for both marble (10) and wood (11).
 const sideMirror: ComponentOption = {
   id: 21, name_ar: 'مرآة جانبية', name_en: 'Side Mirror',
-  icon: '',
-  thumbnail: '/img/side-mirror.png', projection_image: null, sort_order: 2,
+  thumbnail: '/img/side-mirror.png', projection_image: null,
+  is_default_selected: false, sort_order: 2,
   variants: [
     { depends_on_option: 10, projection_image: '/img/side-on-marble.png' },
     { depends_on_option: 11, projection_image: '/img/side-on-wood.png' },
@@ -141,10 +140,10 @@ const scenarios: { name: string; actual: boolean; expected: boolean }[] = [
     expected: false,
   },
   {
-    name: 'selecting the built-in "None" removes the category from selections entirely',
+    name: 'clicking the selected dependent option again removes it from selections',
     actual: (() => {
       const initial: Selections = { 1: marbleWall, 2: topMirror };
-      const result = applyDependentSelect(initial, 2, null);
+      const result = applyDependentSelect(initial, 2, topMirror);
       return 2 in result;
     })(),
     expected: false,

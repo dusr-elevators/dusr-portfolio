@@ -10,14 +10,11 @@ class OptionVariantSerializer(serializers.ModelSerializer):
 
 class ComponentOptionSerializer(serializers.ModelSerializer):
     variants = OptionVariantSerializer(many=True, read_only=True)
-    icon = serializers.SerializerMethodField()
 
     class Meta:
         model = ComponentOption
-        fields = ['id', 'name_ar', 'name_en', 'icon', 'thumbnail', 'projection_image', 'sort_order', 'variants']
-
-    def get_icon(self, obj):
-        return obj.icon.lucide_name if obj.icon_id else ''
+        fields = ['id', 'name_ar', 'name_en', 'thumbnail', 'projection_image',
+                  'is_default_selected', 'sort_order', 'variants']
 
 
 class ComponentCategorySerializer(serializers.ModelSerializer):
