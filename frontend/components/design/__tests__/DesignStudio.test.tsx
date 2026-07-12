@@ -66,17 +66,20 @@ function applyDependentSelect(
 
 const marbleWall: ComponentOption = {
   id: 10, name_ar: 'رخام', name_en: 'Marble',
+  icon: '',
   thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sort_order: 1,
 };
 
 const woodWall: ComponentOption = {
   id: 11, name_ar: 'خشب', name_en: 'Wood',
+  icon: '',
   thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png', sort_order: 2,
 };
 
 // Only available for marble (10).
 const topMirror: ComponentOption = {
   id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
+  icon: 'ArrowUp',
   thumbnail: '/img/top-mirror.png', projection_image: null, sort_order: 1,
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };
@@ -84,6 +87,7 @@ const topMirror: ComponentOption = {
 // Available for both marble (10) and wood (11).
 const sideMirror: ComponentOption = {
   id: 21, name_ar: 'مرآة جانبية', name_en: 'Side Mirror',
+  icon: '',
   thumbnail: '/img/side-mirror.png', projection_image: null, sort_order: 2,
   variants: [
     { depends_on_option: 10, projection_image: '/img/side-on-marble.png' },

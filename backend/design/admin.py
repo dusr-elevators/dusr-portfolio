@@ -17,14 +17,15 @@ class LucideIconChoiceAdmin(admin.ModelAdmin):
 
     @admin.display(description='Used by')
     def usage_count(self, obj):
-        count = obj.categories.count()
-        return f"{count} categor{'y' if count == 1 else 'ies'}"
+        category_count = obj.categories.count()
+        option_count = obj.options.count()
+        return f"{category_count} categor{'y' if category_count == 1 else 'ies'}, {option_count} option{'s' if option_count != 1 else ''}"
 
 
 class ComponentOptionInline(admin.TabularInline):
     model = ComponentOption
     extra = 1
-    fields = ('name_en', 'name_ar', 'thumbnail', 'thumbnail_preview', 'projection_image', 'sort_order', 'is_active')
+    fields = ('name_en', 'name_ar', 'icon', 'thumbnail', 'thumbnail_preview', 'projection_image', 'sort_order', 'is_active')
     readonly_fields = ('thumbnail_preview',)
     ordering = ('sort_order',)
 
@@ -52,7 +53,7 @@ class ComponentCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ComponentOption)
 class ComponentOptionAdmin(admin.ModelAdmin):
-    list_display = ('name_en', 'name_ar', 'category', 'sort_order', 'thumbnail_preview', 'is_active')
+    list_display = ('name_en', 'name_ar', 'category', 'icon', 'sort_order', 'thumbnail_preview', 'is_active')
     list_filter = ('category', 'is_active')
     search_fields = ('name_en', 'name_ar')
     ordering = ('category__layer_order', 'sort_order')

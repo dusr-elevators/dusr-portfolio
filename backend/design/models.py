@@ -92,6 +92,15 @@ class ComponentOption(models.Model):
     )
     name_ar = models.CharField(_('Name (Arabic)'), max_length=100)
     name_en = models.CharField(_('Name (English)'), max_length=100)
+    icon = models.ForeignKey(
+        LucideIconChoice,
+        verbose_name=_('Icon'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='options',
+        help_text=_('Optional icon shown in the Studio option selector, e.g. ArrowUp or ArrowDown for mirrors.'),
+    )
     thumbnail = models.ImageField(
         _('Thumbnail'),
         upload_to=design_thumbnail_path,

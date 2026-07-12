@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import TestCase
 
-from .models import ComponentCategory, ComponentOption, OptionVariant
+from .models import ComponentCategory, ComponentOption, LucideIconChoice, OptionVariant
 from .api.serializers import ComponentOptionSerializer
 
 
@@ -162,6 +162,14 @@ class SerializerTest(TestCase):
         marble = next(o for o in data["options"] if o["name_en"] == "Marble")
         self.assertEqual(marble["variants"], [])
 
+    def test_option_exposes_icon_name(self):
+        icon = LucideIconChoice.objects.create(label="Arrow up", lucide_name="ArrowUp")
+        self.top.icon = icon
+        self.top.save(update_fields=["icon"])
+        data = ComponentCategorySerializer(self.mirror).data
+        top = next(o for o in data["options"] if o["name_en"] == "Top")
+        self.assertEqual(top["icon"], "ArrowUp")
+
 
 class OptionalImagesTest(TestCase):
     def setUp(self):
@@ -177,6 +185,7 @@ class OptionalImagesTest(TestCase):
     def test_option_without_images_serializes_none(self):
         opt = ComponentOption.objects.create(category=self.mirror, name_en="Bare", name_ar="Bare")
         data = ComponentOptionSerializer(opt).data
+        self.assertEqual(data["icon"], "")
         self.assertIsNone(data["thumbnail"])
         self.assertIsNone(data["projection_image"])
 

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowDown, ArrowUp, MoveDown, MoveUp,
   Layers, BrickWall, PanelTop, PanelBottom, DoorOpen, DoorClosed,
   Grip, Lightbulb, ScanFace, LayoutGrid, Palette, Armchair, Shield,
   Settings, Monitor, Camera, Wind, Music, Star, Wrench,
@@ -9,6 +10,7 @@ import {
 import type { ElementType } from 'react';
 
 const ICON_MAP: Record<string, ElementType<LucideProps>> = {
+  ArrowDown, ArrowUp, MoveDown, MoveUp,
   Layers, BrickWall, PanelTop, PanelBottom, DoorOpen, DoorClosed,
   Grip, Lightbulb, ScanFace, LayoutGrid, Palette, Armchair, Shield,
   Settings, Monitor, Camera, Wind, Music, Star, Wrench,

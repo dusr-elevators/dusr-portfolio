@@ -25,11 +25,13 @@ const mirrorCategory: ComponentCategory = {
 
 const marbleWall: ComponentOption = {
   id: 10, name_ar: 'رخام', name_en: 'Marble',
+  icon: '',
   thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sort_order: 1,
 };
 
 const topMirror: ComponentOption = {
   id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
+  icon: 'ArrowUp',
   thumbnail: null, projection_image: null, sort_order: 1,
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };

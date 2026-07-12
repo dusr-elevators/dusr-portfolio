@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { ComponentOption } from './types';
 import type { Lang } from '@/lib/lang';
+import DynamicIcon from './DynamicIcon';
 
 interface DependentOptionRadioListProps {
   /** Only the options available for the currently selected parent option. */
@@ -68,7 +69,11 @@ export default function DependentOptionRadioList({
               onChange={() => onSelect(option)}
               className="accent-[#FF5722]"
             />
-            {option.thumbnail && (
+            {option.icon ? (
+              <span className="flex w-10 h-10 items-center justify-center rounded-lg bg-[#1a1a1a] text-[#FF5722] shrink-0">
+                <DynamicIcon name={option.icon} size={20} strokeWidth={2.25} />
+              </span>
+            ) : option.thumbnail && (
               <span className="relative w-10 h-10 rounded-lg overflow-hidden bg-[#1a1a1a] shrink-0">
                 <Image src={option.thumbnail} alt={name} fill className="object-cover" sizes="40px" />
               </span>
