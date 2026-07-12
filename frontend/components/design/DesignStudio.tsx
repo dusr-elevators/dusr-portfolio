@@ -104,8 +104,8 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
   const requiredDone = categories.filter(c => c.is_required && selections[c.id]).length;
 
   return (
-    <div className="min-h-screen bg-[#131313] text-[#e5e2e1]">
-      <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
+    <div className="min-h-dvh w-full max-w-full overflow-x-clip bg-[#131313] text-[#e5e2e1]">
+      <div className="mx-auto w-full max-w-7xl overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
 
         {/* Page header */}
         <div className="mb-8" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -142,7 +142,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-8">
+        <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
 
           {/* Left: tabs + options */}
           <div className="flex flex-col gap-6 min-w-0">
@@ -196,7 +196,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
           </div>
 
           {/* Right: projection + export */}
-          <div className="flex flex-col gap-6 items-center lg:items-start">
+          <div className="flex min-w-0 flex-col gap-6 items-center lg:items-start">
             <ProjectionCanvas
               categories={categories}
               selections={selections}

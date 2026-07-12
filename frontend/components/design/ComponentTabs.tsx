@@ -98,22 +98,22 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
   };
 
   return (
-    <div className="relative flex items-center gap-1">
+    <div className="relative w-full max-w-full min-w-0 overflow-hidden">
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="shrink-0 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors"
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors shadow-lg"
           aria-label={isRtl ? 'التمرير لليسار' : 'Scroll left'}
         >
-          <ChevronLeft size={16} />
+          {isRtl ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       )}
 
       <div
         ref={scrollRef}
         dir={isRtl ? 'rtl' : 'ltr'}
-        className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1 min-w-0"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {categories.map(cat => {
           const isActive = cat.id === activeId;
@@ -145,10 +145,10 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
       {canScrollRight && (
         <button
           onClick={() => scroll('right')}
-          className="shrink-0 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors"
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors shadow-lg"
           aria-label={isRtl ? 'التمرير لليمين' : 'Scroll right'}
         >
-          <ChevronRight size={16} />
+          {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         </button>
       )}
     </div>

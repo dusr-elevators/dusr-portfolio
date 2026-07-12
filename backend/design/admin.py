@@ -32,6 +32,8 @@ class ComponentOptionInline(admin.TabularInline):
     def thumbnail_preview(self, obj):
         if obj.thumbnail:
             return format_html('<img src="{}" style="height:60px;border-radius:4px;" />', obj.thumbnail.url)
+        if obj.pk and obj.category_id and obj.category.depends_on_category_id:
+            return dependent_option_icon(obj)
         return '—'
 
 
@@ -59,7 +61,24 @@ class ComponentOptionAdmin(admin.ModelAdmin):
     def thumbnail_preview(self, obj):
         if obj.thumbnail:
             return format_html('<img src="{}" style="height:50px;border-radius:4px;" />', obj.thumbnail.url)
+        if obj.category_id and obj.category.depends_on_category_id:
+            return dependent_option_icon(obj)
         return '—'
+
+
+def dependent_option_icon(obj):
+    label = obj.category.icon.lucide_name if obj.category.icon_id else obj.category.name_en
+    return format_html(
+        '<span title="{}" style="display:inline-flex;height:44px;width:44px;align-items:center;'
+        'justify-content:center;border:1px solid #d0d0d0;border-radius:6px;background:#f8f8f8;color:#555;">'
+        '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" '
+        'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<rect x="6" y="3" width="12" height="18" rx="2"></rect>'
+        '<path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path>'
+        '</svg>'
+        '</span>',
+        label,
+    )
 
 
 @admin.register(OptionVariant)

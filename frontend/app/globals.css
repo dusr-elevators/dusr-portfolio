@@ -61,11 +61,30 @@
   --spacing-container-max: 1440px;
 }
 
+html {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  background-color: var(--color-background);
+}
+
 body {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+  margin: 0;
   font-family: var(--font-sans);
   background-color: var(--color-background);
   color: var(--color-on-background);
   overflow-x: hidden;
+}
+
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
 }
 
 .custom-scroll::-webkit-scrollbar {
