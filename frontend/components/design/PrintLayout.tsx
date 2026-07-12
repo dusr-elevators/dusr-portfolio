@@ -21,13 +21,14 @@ export default function PrintLayout({
     <div
       ref={printRef}
       style={{
-        position: 'absolute',
-        left: '-9999px',
-        top: 0,
+        position: 'fixed',
+        left: '-10000px',
+        top: '-10000px',
         width: '794px',
         minHeight: '1123px',
         display: 'flex',
         flexDirection: 'column',
+        pointerEvents: 'none',
         backgroundColor: '#ffffff',
         fontFamily: isAr ? 'Arial, "Noto Sans Arabic", sans-serif' : 'Arial, sans-serif',
         direction: isAr ? 'rtl' : 'ltr',

@@ -67,22 +67,19 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
   }, [router]);
 
   const handleSelect = (option: ComponentOption) => {
-    setSelections(prev => {
-      let next = { ...prev, [activeTab]: option };
+    const next = { ...selections, [activeTab]: option };
 
-      // A dependent selection that has no variant for the new parent resets to "None"
-      for (const depCategory of categories) {
-        if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
-          if (!isOptionAvailable(next[depCategory.id], option.id)) {
-            const { [depCategory.id]: _removed, ...cleaned } = next;
-            next = cleaned;
-          }
+    // A dependent selection that has no variant for the new parent resets to "None"
+    for (const depCategory of categories) {
+      if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
+        if (!isOptionAvailable(next[depCategory.id], option.id)) {
+          delete next[depCategory.id];
         }
       }
+    }
 
-      syncUrl(next);
-      return next;
-    });
+    setSelections(next);
+    syncUrl(next);
   };
 
   const handleDependentSelect = (option: ComponentOption | null) => {
@@ -91,11 +88,9 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
       return;
     }
     // "None": clear this category's selection
-    setSelections(prev => {
-      const { [activeTab]: _removed, ...next } = prev;
-      syncUrl(next);
-      return next;
-    });
+    const { [activeTab]: _removed, ...next } = selections;
+    setSelections(next);
+    syncUrl(next);
   };
 
   const activeCategory = categories.find(c => c.id === activeTab);

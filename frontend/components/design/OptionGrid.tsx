@@ -22,7 +22,11 @@ export default function OptionGrid({ options, selectedId, onSelect, lang }: Opti
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+    <div
+      className="flex w-full max-w-full flex-nowrap gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 md:grid-cols-4"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+    >
       {options.map(option => {
         const isSelected = option.id === selectedId;
         const name = lang === 'ar' ? option.name_ar : option.name_en;
@@ -30,7 +34,7 @@ export default function OptionGrid({ options, selectedId, onSelect, lang }: Opti
           <button
             key={option.id}
             onClick={() => onSelect(option)}
-            className={`relative rounded-xl overflow-hidden border-2 transition-all group cursor-pointer ${
+            className={`relative w-[42vw] max-w-[164px] shrink-0 rounded-xl overflow-hidden border-2 transition-all group cursor-pointer sm:w-auto sm:max-w-none ${
               isSelected
                 ? 'border-[#FF5722] ring-2 ring-[#FF5722]/30'
                 : 'border-[#2a2a2a] hover:border-[#444748]'

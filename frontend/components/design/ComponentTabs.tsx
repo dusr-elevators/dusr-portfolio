@@ -105,7 +105,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
           className="absolute left-0 top-1/2 z-10 -translate-y-1/2 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors shadow-lg"
           aria-label={isRtl ? 'التمرير لليسار' : 'Scroll left'}
         >
-          {isRtl ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          <ChevronLeft size={16} />
         </button>
       )}
 
@@ -148,7 +148,7 @@ export default function ComponentTabs({ categories, activeId, onSelect, complete
           className="absolute right-0 top-1/2 z-10 -translate-y-1/2 p-1.5 rounded-full bg-[#1e1e1e] border border-[#444748] hover:border-[#FF5722] text-[#e5e2e1] transition-colors shadow-lg"
           aria-label={isRtl ? 'التمرير لليمين' : 'Scroll right'}
         >
-          {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          <ChevronRight size={16} />
         </button>
       )}
     </div>
