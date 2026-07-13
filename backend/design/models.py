@@ -159,3 +159,19 @@ class OptionVariant(models.Model):
 
     def __str__(self):
         return f"{self.option.name_en} on {self.depends_on_option.name_en}"
+
+
+class DesignCTASettings(models.Model):
+    is_visible = models.BooleanField(
+        _('Show design CTA button'),
+        default=True,
+        help_text=_('Show the floating "Design Your Elevator" button on the home page.'),
+    )
+
+    class Meta:
+        db_table = 'design_ctasettings'
+        verbose_name = _('Design CTA Button Setting')
+        verbose_name_plural = _('Design CTA Button Setting')
+
+    def __str__(self):
+        return 'Design CTA Button Setting'

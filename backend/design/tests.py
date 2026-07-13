@@ -330,3 +330,61 @@ class MatrixAdminPostTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(OptionVariant.objects.count(), 0)  # nothing saved
+
+
+from django.contrib.admin.sites import site as admin_site
+
+from .models import DesignCTASettings
+
+
+class DesignCTASettingsModelTest(TestCase):
+    def test_default_is_visible_true(self):
+        obj = DesignCTASettings.objects.create()
+        self.assertTrue(obj.is_visible)
+
+    def test_str(self):
+        obj = DesignCTASettings.objects.create()
+        self.assertEqual(str(obj), 'Design CTA Button Setting')
+
+
+class DesignCTASettingsAdminTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.admin_user = User.objects.create_superuser("ctaadmin", "c@x.com", "pass")
+        self.client.force_login(self.admin_user)
+        self.url = reverse("admin:design_designctasettings_changelist")
+
+    def test_changelist_lazily_creates_singleton_row(self):
+        self.assertEqual(DesignCTASettings.objects.count(), 0)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(DesignCTASettings.objects.count(), 1)
+
+    def test_is_visible_is_list_editable(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, 'name="form-0-is_visible"')
+
+    def test_toggle_off_via_list_editable_post(self):
+        DesignCTASettings.objects.create(pk=1, is_visible=True)
+        response = self.client.post(self.url, {
+            'form-TOTAL_FORMS': '1',
+            'form-INITIAL_FORMS': '1',
+            'form-MIN_NUM_FORMS': '0',
+            'form-MAX_NUM_FORMS': '1',
+            'form-0-id': '1',
+            '_save': 'Save',
+        })
+        self.assertEqual(response.status_code, 302)
+        obj = DesignCTASettings.objects.get(pk=1)
+        self.assertFalse(obj.is_visible)
+
+    def test_cannot_add_second_row(self):
+        DesignCTASettings.objects.create(pk=1)
+        model_admin = admin_site._registry[DesignCTASettings]
+        request = type('R', (), {'user': self.admin_user})()
+        self.assertFalse(model_admin.has_add_permission(request))
+
+    def test_cannot_delete(self):
+        DesignCTASettings.objects.create(pk=1)
+        model_admin = admin_site._registry[DesignCTASettings]
+        self.assertFalse(model_admin.has_delete_permission(None))

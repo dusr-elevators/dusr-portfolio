@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
-from .models import ComponentCategory, ComponentOption, LucideIconChoice, OptionVariant
+from .models import ComponentCategory, ComponentOption, DesignCTASettings, LucideIconChoice, OptionVariant
 
 
 @admin.register(LucideIconChoice)
@@ -186,3 +186,20 @@ class OptionVariantAdmin(admin.ModelAdmin):
             'matrices': self._build_matrices(),
         }
         return TemplateResponse(request, self.change_list_template, context)
+
+
+@admin.register(DesignCTASettings)
+class DesignCTASettingsAdmin(admin.ModelAdmin):
+    list_display = ('is_visible',)
+    list_editable = ('is_visible',)
+    list_display_links = None
+
+    def get_queryset(self, request):
+        DesignCTASettings.objects.get_or_create(pk=1)
+        return super().get_queryset(request)
+
+    def has_add_permission(self, request):
+        return not DesignCTASettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
