@@ -388,3 +388,18 @@ class DesignCTASettingsAdminTest(TestCase):
         DesignCTASettings.objects.create(pk=1)
         model_admin = admin_site._registry[DesignCTASettings]
         self.assertFalse(model_admin.has_delete_permission(None))
+
+
+class DesignCTASettingsAPITest(TestCase):
+    def test_get_lazily_creates_and_defaults_true(self):
+        self.assertEqual(DesignCTASettings.objects.count(), 0)
+        response = self.client.get('/api/design/cta-settings/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'is_visible': True})
+        self.assertEqual(DesignCTASettings.objects.count(), 1)
+
+    def test_get_reflects_toggled_flag(self):
+        DesignCTASettings.objects.create(pk=1, is_visible=False)
+        response = self.client.get('/api/design/cta-settings/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'is_visible': False})

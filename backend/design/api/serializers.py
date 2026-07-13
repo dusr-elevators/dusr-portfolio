@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import ComponentCategory, ComponentOption, OptionVariant
+from ..models import ComponentCategory, ComponentOption, DesignCTASettings, OptionVariant
 
 
 class OptionVariantSerializer(serializers.ModelSerializer):
@@ -34,3 +34,9 @@ class ComponentCategorySerializer(serializers.ModelSerializer):
         if active_options is None:
             active_options = obj.options.filter(is_active=True)
         return ComponentOptionSerializer(active_options, many=True, context=self.context).data
+
+
+class DesignCTASettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DesignCTASettings
+        fields = ['is_visible']
