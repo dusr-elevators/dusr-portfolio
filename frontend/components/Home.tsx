@@ -14,8 +14,9 @@ import BentoServices from './BentoServices';
 import SafetyDiagnostic from './SafetyDiagnostic';
 import ContactForm from './ContactForm';
 import Footer from './Footer';
+import DesignCTAButton from './DesignCTAButton';
 
-export default function Home({ lang }: { lang: Lang }) {
+export default function Home({ lang, showDesignCTA }: { lang: Lang; showDesignCTA: boolean }) {
   const router = useRouter();
 
   // Switching language navigates to the other language's URL (its own page).
@@ -127,6 +128,9 @@ export default function Home({ lang }: { lang: Lang }) {
 
       {/* 7. Beautifully aligned footer with return-top capabilities */}
       <Footer lang={lang} />
+
+      {/* 8. Floating CTA linking to the elevator cabin designer (admin-toggleable) */}
+      {showDesignCTA && <DesignCTAButton lang={lang} />}
 
     </div>
   );
