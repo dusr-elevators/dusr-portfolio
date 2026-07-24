@@ -5,6 +5,7 @@ import { Download, Loader2, MessageCircle } from 'lucide-react';
 import type { ComponentCategory, Selections } from './types';
 import type { Lang } from '@/lib/lang';
 import PrintLayout from './PrintLayout';
+import { buildDesignPdf, downloadPdfBlob } from './useDesignPdf';
 
 interface ExportButtonProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
@@ -23,44 +24,15 @@ export default function ExportButton({ canvasRef, categories, selections, lang }
   const isReady = missingRequired.length === 0 && Object.keys(selections).length > 0;
 
   const handleExport = async () => {
-    if (!canvasRef.current || !isReady) return;
+    if (!isReady) return;
     setLoading(true);
-
     try {
-      const [html2canvas, { jsPDF }] = await Promise.all([
-        import('html2canvas').then(m => m.default),
-        import('jspdf'),
-      ]);
-
-      // Step 1: capture the projection canvas → base64
-      const projCanvas = await html2canvas(canvasRef.current, {
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scale: 2,
+      const blob = await buildDesignPdf({
+        canvasEl: canvasRef.current,
+        getPrintEl: () => printRef.current,
+        setProjectionSrc,
       });
-      const src = projCanvas.toDataURL('image/png');
-
-      // Step 2: inject into print layout and wait for re-render
-      setProjectionSrc(src);
-      await new Promise(r => setTimeout(r, 200));
-
-      // Step 3: capture the full print layout
-      if (!printRef.current) return;
-      const printCanvas = await html2canvas(printRef.current, {
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scale: 2,
-      });
-
-      // Step 4: insert into PDF (A4)
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = printCanvas.height / printCanvas.width;
-      const imgH = Math.min(pageW * ratio, pageH);
-      pdf.addImage(printCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, imgH);
-
-      pdf.save('dusr-elevator-design.pdf');
+      downloadPdfBlob(blob);
     } finally {
       setLoading(false);
       setProjectionSrc('');
