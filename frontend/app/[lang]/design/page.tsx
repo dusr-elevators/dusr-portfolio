@@ -30,6 +30,7 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
         ...opt,
         thumbnail: fixUrlNullable(opt.thumbnail),
         projection_image: fixUrlNullable(opt.projection_image),
+        sound_file: fixUrlNullable(opt.sound_file),
         variants: opt.variants?.map(v => ({
           ...v,
           projection_image: fixUrl(v.projection_image),

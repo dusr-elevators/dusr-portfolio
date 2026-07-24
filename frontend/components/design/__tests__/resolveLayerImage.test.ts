@@ -12,24 +12,24 @@ import { resolveLayerImage } from '../resolveLayerImage';
 import type { ComponentCategory, ComponentOption } from '../types';
 
 const wallsCategory: ComponentCategory = {
-  id: 1, name_ar: 'الجدران', name_en: 'Walls', layer_order: 1,
+  id: 1, name_ar: 'الجدران', name_en: 'Walls', kind: 'visual', layer_order: 1,
   is_required: true, icon: 'PanelTop', depends_on_category: null, options: [],
 };
 
 const mirrorCategory: ComponentCategory = {
-  id: 2, name_ar: 'المرايا', name_en: 'Mirrors', layer_order: 2,
+  id: 2, name_ar: 'المرايا', name_en: 'Mirrors', kind: 'visual', layer_order: 2,
   is_required: false, icon: 'Square', depends_on_category: 1, options: [],
 };
 
 const marbleWall: ComponentOption = {
   id: 10, name_ar: 'رخام', name_en: 'Marble',
-  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png',
+  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sound_file: null,
   is_default_selected: true, sort_order: 1,
 };
 
 const topMirror: ComponentOption = {
   id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
-  thumbnail: null, projection_image: null,
+  thumbnail: null, projection_image: null, sound_file: null,
   is_default_selected: false, sort_order: 1,
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };

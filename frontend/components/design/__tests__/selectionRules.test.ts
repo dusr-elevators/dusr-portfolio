@@ -29,20 +29,20 @@ import type { ComponentCategory, ComponentOption, Selections } from '../types';
 
 const marbleWall: ComponentOption = {
   id: 10, name_ar: 'رخام', name_en: 'Marble',
-  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png',
+  thumbnail: '/img/marble-t.png', projection_image: '/img/marble.png', sound_file: null,
   is_default_selected: true, sort_order: 1,
 };
 
 const woodWall: ComponentOption = {
   id: 11, name_ar: 'خشب', name_en: 'Wood',
-  thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png',
+  thumbnail: '/img/wood-t.png', projection_image: '/img/wood.png', sound_file: null,
   is_default_selected: false, sort_order: 2,
 };
 
 // Only available for marble (10).
 const topMirror: ComponentOption = {
   id: 20, name_ar: 'مرآة علوية', name_en: 'Top Mirror',
-  thumbnail: '/img/top-mirror.png', projection_image: null,
+  thumbnail: '/img/top-mirror.png', projection_image: null, sound_file: null,
   is_default_selected: false, sort_order: 1,
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };
@@ -50,7 +50,7 @@ const topMirror: ComponentOption = {
 // Available for both marble (10) and wood (11).
 const sideMirror: ComponentOption = {
   id: 21, name_ar: 'مرآة جانبية', name_en: 'Side Mirror',
-  thumbnail: '/img/side-mirror.png', projection_image: null,
+  thumbnail: '/img/side-mirror.png', projection_image: null, sound_file: null,
   is_default_selected: false, sort_order: 2,
   variants: [
     { depends_on_option: 10, projection_image: '/img/side-on-marble.png' },
@@ -59,13 +59,13 @@ const sideMirror: ComponentOption = {
 };
 
 const wallsCategory: ComponentCategory = {
-  id: 1, name_ar: 'الجدران', name_en: 'Walls', layer_order: 1,
+  id: 1, name_ar: 'الجدران', name_en: 'Walls', kind: 'visual', layer_order: 1,
   is_required: true, icon: 'PanelTop', depends_on_category: null,
   options: [marbleWall, woodWall],
 };
 
 const mirrorCategory: ComponentCategory = {
-  id: 2, name_ar: 'المرايا', name_en: 'Mirrors', layer_order: 2,
+  id: 2, name_ar: 'المرايا', name_en: 'Mirrors', kind: 'visual', layer_order: 2,
   is_required: false, icon: 'Square', depends_on_category: 1,
   options: [topMirror, sideMirror],
 };
@@ -156,7 +156,7 @@ describe('applyDefaultSelections', () => {
     const defaultTopMirror: ComponentOption = { ...topMirror, is_default_selected: true };
     const cats: ComponentCategory[] = [
       wallsCategory,
-      { ...mirrorCategory, options: [defaultTopMirror, sideMirror] },
+      { ...mirrorCategory, kind: 'visual', options: [defaultTopMirror, sideMirror] },
     ];
 
     // Walls resolves to wood, for which topMirror has no variant.
