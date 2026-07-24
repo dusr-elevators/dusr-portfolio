@@ -26,11 +26,30 @@ class DesignExportSettingsView(APIView):
         return Response(serializer.data)
 
 
+# A little above the ~7 MB base64 budget (MAX_PDF_B64_CHARS) plus room for the
+# JSON envelope and the other fields. This is the pre-parse guard: it is checked
+# from CONTENT_LENGTH before request.data is touched, so an oversize upload is
+# rejected before DRF's JSONParser reads and parses the whole body into memory.
+MAX_REQUEST_BYTES = 8 * 1024 * 1024
+
+
 class DesignLeadSubmissionView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'design_lead'
 
     def post(self, request):
+        content_length = request.META.get('CONTENT_LENGTH')
+        if content_length is not None:
+            try:
+                content_length = int(content_length)
+            except (TypeError, ValueError):
+                content_length = None
+            if content_length is not None and content_length > MAX_REQUEST_BYTES:
+                return Response(
+                    {'detail': 'The request body is too large.'},
+                    status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                )
+
         serializer = DesignLeadSubmissionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

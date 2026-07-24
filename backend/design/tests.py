@@ -582,6 +582,7 @@ class DesignLeadSubmissionModelTest(TestCase):
 
 
 import base64
+import json
 from unittest.mock import patch
 
 from django.core import mail
@@ -653,10 +654,27 @@ class DesignLeadSubmissionAPITest(TestCase):
         self.assertEqual(DesignLeadSubmission.objects.count(), 0)
 
     def test_oversize_payload_is_rejected(self):
+        # Valid base64 (not just an oversize string) so a decode-first implementation
+        # can't accidentally pass this test by failing on a decode error instead of
+        # the intended pre-decode length check.
+        oversize_pdf_base64 = base64.b64encode(b'A' * 5_400_000).decode()
+        self.assertGreater(len(oversize_pdf_base64), 7_000_000)
+
         response = self.client.post(
-            self.url, lead_payload(pdf_base64='A' * 7_000_001), content_type='application/json',
+            self.url, lead_payload(pdf_base64=oversize_pdf_base64), content_type='application/json',
         )
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(DesignLeadSubmission.objects.count(), 0)
+
+    def test_request_over_content_length_limit_is_rejected(self):
+        # Force the CONTENT_LENGTH header to exceed MAX_REQUEST_BYTES while the actual
+        # body stays small, to prove the view rejects on the header alone, before it
+        # ever touches request.data.
+        response = self.client.generic(
+            'POST', self.url, data=json.dumps(lead_payload()),
+            content_type='application/json', CONTENT_LENGTH='9000000',
+        )
+        self.assertEqual(response.status_code, 413)
         self.assertEqual(DesignLeadSubmission.objects.count(), 0)
 
     def test_lead_survives_smtp_failure_and_response_says_so(self):

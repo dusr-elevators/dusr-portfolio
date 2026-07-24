@@ -66,7 +66,10 @@ class DesignLeadSubmissionSerializer(serializers.ModelSerializer):
         fields = ['full_name', 'email', 'mobile', 'selections_summary', 'design_url', 'pdf_base64']
 
     def validate_pdf_base64(self, value):
-        # Check the encoded length first so an oversize payload never gets decoded.
+        # The real pre-parse guard is the CONTENT_LENGTH check in the view, which
+        # runs before DRF parses the body into memory. This is a secondary bound:
+        # by the time we're here the body is already fully parsed, so this only
+        # stops an oversize value from also being base64-decoded.
         if len(value) > MAX_PDF_B64_CHARS:
             raise serializers.ValidationError('The design file is too large.')
 
