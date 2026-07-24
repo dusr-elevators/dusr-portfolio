@@ -814,15 +814,17 @@ and a scoped throttle."
 
 ---
 
-## Task 5: Frontend types and delivery-mode plumbing
+## Task 5: Frontend types for the new API fields
 
 **Files:**
-- Modify: `frontend/components/design/types.ts`, `frontend/app/[lang]/design/page.tsx`, `frontend/components/design/DesignStudio.tsx`
-- Test: `frontend/components/design/__tests__/` (none — this task is typed plumbing; Task 8 covers the behaviour)
+- Modify: `frontend/components/design/types.ts`, `frontend/app/[lang]/design/page.tsx`
+- Test: none — this task only declares types and rewrites one URL field; Tasks 8 and 10 cover the behaviour that uses them.
 
 **Interfaces:**
 - Consumes: the API shapes from Tasks 1 and 2.
-- Produces: `DeliveryMode` and `LeadDetails` types; `ComponentCategory.kind`; `ComponentOption.sound_file`; a `deliveryMode: DeliveryMode` prop threaded `page.tsx` → `DesignStudio` → `ExportButton`.
+- Produces: `CategoryKind`, `DeliveryMode`, and `LeadDetails` types; `ComponentCategory.kind`; `ComponentOption.sound_file`, with sound URLs rewritten for the browser.
+
+The `deliveryMode` prop is deliberately **not** threaded here. Threading it through `page.tsx` → `DesignStudio` → `ExportButton` before anything consumes it would leave a chain of unused props across two commits. Task 8 introduces the whole chain in the commit that uses it.
 
 - [ ] **Step 1: Extend the types**
 
@@ -842,87 +844,28 @@ export interface LeadDetails {
 
 Add `sound_file: string | null;` to `ComponentOption` (after `projection_image`) and `kind: CategoryKind;` to `ComponentCategory` (after `name_en`).
 
-- [ ] **Step 2: Fetch the setting and rewrite sound URLs**
+- [ ] **Step 2: Rewrite sound URLs for the browser**
 
-In `frontend/app/[lang]/design/page.tsx`, add `DeliveryMode` to the type import, then add `sound_file` to the option rewrite inside `fetchCategories` (alongside `thumbnail` and `projection_image`):
+In `frontend/app/[lang]/design/page.tsx`, add `sound_file` to the option rewrite inside `fetchCategories`, alongside `thumbnail` and `projection_image`:
 
 ```typescript
         sound_file: fixUrlNullable(opt.sound_file),
 ```
 
-Add this function after `fetchCategories`:
+Without this, audio 404s behind Docker while images work — a confusing way to find the bug.
 
-```typescript
-async function fetchDeliveryMode(): Promise<DeliveryMode> {
-  const url = `${apiBase}/api/design/export-settings/`;
-  try {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) {
-      console.error(`Failed to fetch export settings from ${url}: ${res.status} ${res.statusText}`);
-      return 'form_email_download';
-    }
-    const data = await res.json();
-    return data.delivery_mode as DeliveryMode;
-  } catch (error) {
-    console.error(`Failed to fetch export settings from ${url}:`, error);
-    // Fail closed: a backend hiccup must not silently switch lead capture off.
-    return 'form_email_download';
-  }
-}
-```
-
-Update the page body:
-
-```typescript
-  const [categories, deliveryMode] = await Promise.all([
-    fetchCategories(),
-    fetchDeliveryMode(),
-  ]);
-
-  return (
-    <Suspense>
-      <DesignStudio categories={categories} lang={lang as Lang} deliveryMode={deliveryMode} />
-    </Suspense>
-  );
-```
-
-- [ ] **Step 3: Thread the prop through DesignStudio**
-
-In `frontend/components/design/DesignStudio.tsx`, add `DeliveryMode` to the type import, add to `DesignStudioProps`:
-
-```typescript
-  deliveryMode: DeliveryMode;
-```
-
-Destructure it in the component signature and pass it to `ExportButton`:
-
-```tsx
-            <ExportButton
-              canvasRef={canvasRef}
-              categories={categories}
-              selections={selections}
-              lang={lang}
-              deliveryMode={deliveryMode}
-            />
-```
-
-- [ ] **Step 4: Accept the prop in ExportButton**
-
-In `frontend/components/design/ExportButton.tsx`, add `DeliveryMode` to the type import, add `deliveryMode: DeliveryMode;` to `ExportButtonProps`, and destructure it. It is unused until Task 8 — that is expected and typechecks fine.
-
-- [ ] **Step 5: Verify typecheck and tests**
+- [ ] **Step 3: Verify typecheck and tests**
 
 Run: `cd frontend && npm run typecheck && npm test`
 Expected: typecheck clean; 21 existing tests still pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add frontend/components/design/types.ts frontend/app/[lang]/design/page.tsx frontend/components/design/DesignStudio.tsx frontend/components/design/ExportButton.tsx
-git commit -m "Thread delivery mode and sound fields through the design page
+git add frontend/components/design/types.ts frontend/app/[lang]/design/page.tsx
+git commit -m "Add frontend types for sound categories and delivery mode
 
-Export settings fail closed to the gated mode, so a backend fetch failure
-cannot quietly turn lead capture off."
+Sound URLs go through the same internal-URL rewrite as images."
 ```
 
 ---
@@ -1103,15 +1046,6 @@ export function downloadPdfBlob(blob: Blob, filename = 'dusr-elevator-design.pdf
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
-}
-
-/** Strips the `data:...;base64,` prefix so the payload is bare base64. */
-export async function blobToBase64(blob: Blob): Promise<string> {
-  const buffer = await blob.arrayBuffer();
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
 }
 ```
 
@@ -1502,8 +1436,10 @@ the site is bilingual and draws Gulf-wide enquiries."
 - Test: `frontend/components/design/__tests__/ExportButton.test.tsx`
 
 **Interfaces:**
-- Consumes: `buildDesignPdf`, `downloadPdfBlob`, `blobToBase64` (Task 6); `LeadCaptureModal` (Task 7); `deliveryMode` (Task 5).
-- Produces: `buildSelectionsSummary(categories, selections, lang): string` exported from `ExportButton.tsx`, reused by the WhatsApp quote.
+- Consumes: `buildDesignPdf`, `downloadPdfBlob` (Task 6); `LeadCaptureModal` (Task 7); the `DeliveryMode` type (Task 5).
+- Produces: `blobToBase64(blob): Promise<string>` added to `useDesignPdf.ts`; `buildSelectionsSummary(categories, selections, lang): string` exported from `ExportButton.tsx` and reused by the WhatsApp quote; the `deliveryMode` prop chain `page.tsx` → `DesignStudio` → `ExportButton`.
+
+This task introduces the whole `deliveryMode` chain at once, because every hop of it is consumed here.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1667,7 +1603,72 @@ describe('ExportButton delivery modes', () => {
 Run: `cd frontend && npm test -- ExportButton`
 Expected: FAIL — `buildSelectionsSummary` is not exported.
 
-- [ ] **Step 3: Rewrite ExportButton**
+- [ ] **Step 3: Add the base64 helper**
+
+Append to `frontend/components/design/useDesignPdf.ts`:
+
+```typescript
+/** Bare base64 for the JSON payload — no `data:...;base64,` prefix. */
+export async function blobToBase64(blob: Blob): Promise<string> {
+  const buffer = await blob.arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+```
+
+- [ ] **Step 4: Thread deliveryMode from the page**
+
+In `frontend/app/[lang]/design/page.tsx`, add `DeliveryMode` to the type import and add this function after `fetchCategories`:
+
+```typescript
+async function fetchDeliveryMode(): Promise<DeliveryMode> {
+  const url = `${apiBase}/api/design/export-settings/`;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      console.error(`Failed to fetch export settings from ${url}: ${res.status} ${res.statusText}`);
+      return 'form_email_download';
+    }
+    const data = await res.json();
+    return data.delivery_mode as DeliveryMode;
+  } catch (error) {
+    console.error(`Failed to fetch export settings from ${url}:`, error);
+    // Fail closed: a backend hiccup must not silently switch lead capture off.
+    return 'form_email_download';
+  }
+}
+```
+
+Update the page body:
+
+```typescript
+  const [categories, deliveryMode] = await Promise.all([
+    fetchCategories(),
+    fetchDeliveryMode(),
+  ]);
+
+  return (
+    <Suspense>
+      <DesignStudio categories={categories} lang={lang as Lang} deliveryMode={deliveryMode} />
+    </Suspense>
+  );
+```
+
+In `frontend/components/design/DesignStudio.tsx`, add `DeliveryMode` to the type import, add `deliveryMode: DeliveryMode;` to `DesignStudioProps`, destructure it in the component signature, and pass it to `ExportButton`:
+
+```tsx
+            <ExportButton
+              canvasRef={canvasRef}
+              categories={categories}
+              selections={selections}
+              lang={lang}
+              deliveryMode={deliveryMode}
+            />
+```
+
+- [ ] **Step 5: Rewrite ExportButton**
 
 Replace `frontend/components/design/ExportButton.tsx` with:
 
@@ -1893,25 +1894,25 @@ export default function ExportButton({
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [ ] **Step 6: Run the tests**
 
 Run: `cd frontend && npm test -- ExportButton`
 Expected: PASS — 9 tests.
 
-- [ ] **Step 5: Confirm the API path resolves through the proxy**
+- [ ] **Step 7: Confirm the API path resolves through the proxy**
 
 Run: `cd frontend && grep -n "api" next.config.ts middleware.ts`
 Expected: a rewrite or proxy mapping `/api/...` to the Django backend. If the frontend calls Django on a different origin, change the `fetch` URL above to match how other client-side calls in this codebase reach the API. Do not guess — check `DesignCTAButton.tsx` or any existing client fetch for the established pattern.
 
-- [ ] **Step 6: Run the full suite**
+- [ ] **Step 8: Run the full suite**
 
 Run: `cd frontend && npm run typecheck && npm test`
 Expected: typecheck clean; all tests pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add frontend/components/design/ExportButton.tsx frontend/components/design/__tests__/ExportButton.test.tsx
+git add frontend/components/design/ExportButton.tsx frontend/components/design/__tests__/ExportButton.test.tsx frontend/components/design/useDesignPdf.ts frontend/app/[lang]/design/page.tsx frontend/components/design/DesignStudio.tsx
 git commit -m "Gate the PDF export behind the delivery mode
 
 PDF generation starts when the modal opens rather than on submit, so the
