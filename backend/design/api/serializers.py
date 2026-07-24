@@ -1,5 +1,10 @@
+import base64
+
 from rest_framework import serializers
-from ..models import ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings, OptionVariant
+from ..models import (
+    ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings,
+    DesignLeadSubmission, OptionVariant,
+)
 
 
 class OptionVariantSerializer(serializers.ModelSerializer):
@@ -46,3 +51,34 @@ class DesignExportSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = DesignExportSettings
         fields = ['delivery_mode']
+
+
+# 5 MB of PDF; base64 inflates by ~4/3, so cap the encoded string a little above that.
+MAX_PDF_BYTES = 5 * 1024 * 1024
+MAX_PDF_B64_CHARS = 7_000_000
+
+
+class DesignLeadSubmissionSerializer(serializers.ModelSerializer):
+    pdf_base64 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = DesignLeadSubmission
+        fields = ['full_name', 'email', 'mobile', 'selections_summary', 'design_url', 'pdf_base64']
+
+    def validate_pdf_base64(self, value):
+        # Check the encoded length first so an oversize payload never gets decoded.
+        if len(value) > MAX_PDF_B64_CHARS:
+            raise serializers.ValidationError('The design file is too large.')
+
+        try:
+            decoded = base64.b64decode(value, validate=True)
+        except (ValueError, TypeError):
+            raise serializers.ValidationError('The design file could not be decoded.')
+
+        if len(decoded) > MAX_PDF_BYTES:
+            raise serializers.ValidationError('The design file is too large.')
+        # Without this the endpoint would mail arbitrary attachments from our domain.
+        if not decoded.startswith(b'%PDF-'):
+            raise serializers.ValidationError('The uploaded file is not a PDF.')
+
+        return value

@@ -579,3 +579,96 @@ class DesignLeadSubmissionModelTest(TestCase):
             full_name="New", email="n@example.com", mobile="2", selections_summary="",
         )
         self.assertEqual(list(DesignLeadSubmission.objects.all()), [new, old])
+
+
+import base64
+from unittest.mock import patch
+
+from django.core import mail
+from django.core.cache import cache
+from django.test import override_settings
+
+VALID_PDF = b"%PDF-1.4\n%fake pdf body\n"
+
+
+def lead_payload(**overrides):
+    payload = {
+        'full_name': 'Sara Ahmed',
+        'email': 'sara@example.com',
+        'mobile': '+966501234567',
+        'design_url': 'https://dusr.sa/design?c1=4',
+        'selections_summary': 'Walls: Oak\nSound: Classic chime',
+        'pdf_base64': base64.b64encode(VALID_PDF).decode(),
+    }
+    payload.update(overrides)
+    return payload
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class DesignLeadSubmissionAPITest(TestCase):
+    url = '/api/design/lead-submissions/'
+
+    def setUp(self):
+        cache.clear()
+        mail.outbox = []
+
+    def test_valid_submission_saves_lead_and_sends_two_emails(self):
+        response = self.client.post(self.url, lead_payload(), content_type='application/json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {'email_sent': True})
+
+        lead = DesignLeadSubmission.objects.get()
+        self.assertEqual(lead.full_name, 'Sara Ahmed')
+        self.assertEqual(lead.selections_summary, 'Walls: Oak\nSound: Classic chime')
+
+        self.assertEqual(len(mail.outbox), 2)
+        recipients = {m.to[0] for m in mail.outbox}
+        self.assertIn('sara@example.com', recipients)
+
+    def test_customer_email_carries_the_pdf_attachment(self):
+        self.client.post(self.url, lead_payload(), content_type='application/json')
+        customer = next(m for m in mail.outbox if m.to == ['sara@example.com'])
+
+        self.assertEqual(len(customer.attachments), 1)
+        name, content, mimetype = customer.attachments[0]
+        self.assertEqual(name, 'dusr-elevator-design.pdf')
+        self.assertEqual(mimetype, 'application/pdf')
+        self.assertTrue(content.startswith(b'%PDF-'))
+
+    def test_missing_required_field_is_rejected(self):
+        response = self.client.post(
+            self.url, lead_payload(full_name=''), content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(DesignLeadSubmission.objects.count(), 0)
+
+    def test_payload_that_is_not_a_pdf_is_rejected(self):
+        not_a_pdf = base64.b64encode(b"GIF89a totally not a pdf").decode()
+        response = self.client.post(
+            self.url, lead_payload(pdf_base64=not_a_pdf), content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('pdf_base64', response.json())
+        self.assertEqual(DesignLeadSubmission.objects.count(), 0)
+
+    def test_oversize_payload_is_rejected(self):
+        response = self.client.post(
+            self.url, lead_payload(pdf_base64='A' * 7_000_001), content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(DesignLeadSubmission.objects.count(), 0)
+
+    def test_lead_survives_smtp_failure_and_response_says_so(self):
+        with patch('design.api.emails.EmailMessage.send', side_effect=OSError('smtp down')):
+            response = self.client.post(self.url, lead_payload(), content_type='application/json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {'email_sent': False})
+        self.assertEqual(DesignLeadSubmission.objects.count(), 1)
+
+    def test_repeated_submissions_are_throttled(self):
+        for _ in range(10):
+            self.client.post(self.url, lead_payload(), content_type='application/json')
+        response = self.client.post(self.url, lead_payload(), content_type='application/json')
+        self.assertEqual(response.status_code, 429)

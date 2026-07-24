@@ -201,6 +201,11 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
+    # Throttling is opt-in per view, not global: the read endpoints are hit on
+    # every page load and must not be rate-limited.
+    'DEFAULT_THROTTLE_RATES': {
+        'design_lead': '10/hour',
+    },
 }
 
 SPECTACULAR_SETTINGS = {
