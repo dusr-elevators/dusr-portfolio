@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import ComponentCategory, ComponentOption, DesignCTASettings, OptionVariant
+from ..models import ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings, OptionVariant
 
 
 class OptionVariantSerializer(serializers.ModelSerializer):
@@ -40,3 +40,9 @@ class DesignCTASettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = DesignCTASettings
         fields = ['is_visible']
+
+
+class DesignExportSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DesignExportSettings
+        fields = ['delivery_mode']

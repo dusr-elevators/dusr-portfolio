@@ -6,7 +6,9 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
-from .models import ComponentCategory, ComponentOption, DesignCTASettings, LucideIconChoice, OptionVariant
+from .models import (
+    ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings, LucideIconChoice, OptionVariant,
+)
 
 
 @admin.register(LucideIconChoice)
@@ -200,6 +202,23 @@ class DesignCTASettingsAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not DesignCTASettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DesignExportSettings)
+class DesignExportSettingsAdmin(admin.ModelAdmin):
+    list_display = ('delivery_mode',)
+    list_editable = ('delivery_mode',)
+    list_display_links = None
+
+    def get_queryset(self, request):
+        DesignExportSettings.objects.get_or_create(pk=1)
+        return super().get_queryset(request)
+
+    def has_add_permission(self, request):
+        return not DesignExportSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

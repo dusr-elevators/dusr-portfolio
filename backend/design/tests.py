@@ -535,3 +535,22 @@ class SoundSerializerTest(TestCase):
         data = ComponentCategorySerializer(sounds).data
         self.assertEqual(data['kind'], 'sound')
         self.assertTrue(data['options'][0]['sound_file'].endswith('.mp3'))
+
+
+from .models import DesignExportSettings
+
+
+class DesignExportSettingsAPITest(TestCase):
+    def test_get_lazily_creates_and_defaults_to_gated_download(self):
+        self.assertEqual(DesignExportSettings.objects.count(), 0)
+        response = self.client.get('/api/design/export-settings/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'delivery_mode': 'form_email_download'})
+        self.assertEqual(DesignExportSettings.objects.count(), 1)
+
+    def test_get_reflects_admin_change(self):
+        DesignExportSettings.objects.create(
+            pk=1, delivery_mode=DesignExportSettings.MODE_FREE_DOWNLOAD,
+        )
+        response = self.client.get('/api/design/export-settings/')
+        self.assertEqual(response.json(), {'delivery_mode': 'free_download'})

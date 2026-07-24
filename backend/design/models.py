@@ -224,3 +224,30 @@ class DesignCTASettings(models.Model):
 
     def __str__(self):
         return 'Design CTA Button Setting'
+
+
+class DesignExportSettings(models.Model):
+    MODE_FORM_EMAIL_DOWNLOAD = 'form_email_download'
+    MODE_FORM_EMAIL_ONLY = 'form_email_only'
+    MODE_FREE_DOWNLOAD = 'free_download'
+    MODE_CHOICES = [
+        (MODE_FORM_EMAIL_DOWNLOAD, _('Contact form → email the PDF and download it')),
+        (MODE_FORM_EMAIL_ONLY, _('Contact form → email the PDF only')),
+        (MODE_FREE_DOWNLOAD, _('Free download, no contact form')),
+    ]
+
+    delivery_mode = models.CharField(
+        _('PDF delivery mode'),
+        max_length=32,
+        choices=MODE_CHOICES,
+        default=MODE_FORM_EMAIL_DOWNLOAD,
+        help_text=_('Controls whether visitors must submit their contact details to get the PDF.'),
+    )
+
+    class Meta:
+        db_table = 'design_exportsettings'
+        verbose_name = _('Design Export Setting')
+        verbose_name_plural = _('Design Export Setting')
+
+    def __str__(self):
+        return 'Design Export Setting'
