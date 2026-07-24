@@ -251,3 +251,26 @@ class DesignExportSettings(models.Model):
 
     def __str__(self):
         return 'Design Export Setting'
+
+
+class DesignLeadSubmission(models.Model):
+    full_name = models.CharField(_('Full name'), max_length=100)
+    email = models.EmailField(_('Email'))
+    mobile = models.CharField(_('Mobile'), max_length=20)
+    selections_summary = models.TextField(
+        _('Chosen components'),
+        blank=True,
+        help_text=_('Snapshot of the cabin the visitor designed, kept as text so it '
+                    'survives later edits to the component catalogue.'),
+    )
+    design_url = models.URLField(_('Design link'), max_length=500, blank=True)
+    created_at = models.DateTimeField(_('Submitted at'), auto_now_add=True)
+
+    class Meta:
+        db_table = 'design_leadsubmission'
+        ordering = ['-created_at']
+        verbose_name = _('Design Lead')
+        verbose_name_plural = _('Design Leads')
+
+    def __str__(self):
+        return f"{self.full_name} — {self.email}"

@@ -7,7 +7,8 @@ from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
 from .models import (
-    ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings, LucideIconChoice, OptionVariant,
+    ComponentCategory, ComponentOption, DesignCTASettings, DesignExportSettings, DesignLeadSubmission,
+    LucideIconChoice, OptionVariant,
 )
 
 
@@ -221,4 +222,15 @@ class DesignExportSettingsAdmin(admin.ModelAdmin):
         return not DesignExportSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DesignLeadSubmission)
+class DesignLeadSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'mobile', 'created_at')
+    search_fields = ('full_name', 'email', 'mobile')
+    readonly_fields = ('full_name', 'email', 'mobile', 'selections_summary', 'design_url', 'created_at')
+    ordering = ('-created_at',)
+
+    def has_add_permission(self, request):
         return False

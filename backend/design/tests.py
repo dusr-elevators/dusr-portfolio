@@ -554,3 +554,28 @@ class DesignExportSettingsAPITest(TestCase):
         )
         response = self.client.get('/api/design/export-settings/')
         self.assertEqual(response.json(), {'delivery_mode': 'free_download'})
+
+
+from .models import DesignLeadSubmission
+
+
+class DesignLeadSubmissionModelTest(TestCase):
+    def test_stores_contact_details_and_selection_snapshot(self):
+        lead = DesignLeadSubmission.objects.create(
+            full_name="Sara Ahmed",
+            email="sara@example.com",
+            mobile="+966501234567",
+            selections_summary="Walls: Oak\nSound: Classic chime",
+            design_url="https://dusr.sa/design?c1=4",
+        )
+        self.assertIsNotNone(lead.created_at)
+        self.assertIn("Sara Ahmed", str(lead))
+
+    def test_newest_lead_is_listed_first(self):
+        old = DesignLeadSubmission.objects.create(
+            full_name="Old", email="o@example.com", mobile="1", selections_summary="",
+        )
+        new = DesignLeadSubmission.objects.create(
+            full_name="New", email="n@example.com", mobile="2", selections_summary="",
+        )
+        self.assertEqual(list(DesignLeadSubmission.objects.all()), [new, old])
