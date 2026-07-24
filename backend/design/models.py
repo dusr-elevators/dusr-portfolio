@@ -1,5 +1,7 @@
 import os
 from uuid import uuid4
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -12,6 +14,11 @@ def design_thumbnail_path(instance, filename):
 def design_projection_path(instance, filename):
     ext = filename.split('.')[-1]
     return os.path.join('design', 'projections', f"{uuid4().hex}.{ext}")
+
+
+def design_sound_path(instance, filename):
+    ext = filename.split('.')[-1]
+    return os.path.join('design', 'sounds', f"{uuid4().hex}.{ext}")
 
 
 class LucideIconChoice(models.Model):
@@ -40,6 +47,24 @@ class LucideIconChoice(models.Model):
 class ComponentCategory(models.Model):
     name_ar = models.CharField(_('Name (Arabic)'), max_length=100)
     name_en = models.CharField(_('Name (English)'), max_length=100)
+
+    KIND_VISUAL = 'visual'
+    KIND_SOUND = 'sound'
+    KIND_CHOICES = [
+        (KIND_VISUAL, _('Visual — paints a layer on the cabin preview')),
+        (KIND_SOUND, _('Sound — the user auditions and picks an audio file')),
+    ]
+
+    kind = models.CharField(
+        _('Kind'),
+        max_length=10,
+        choices=KIND_CHOICES,
+        default=KIND_VISUAL,
+        help_text=_(
+            'Visual categories paint an image layer. Sound categories hold audio '
+            'files instead and render a player in the studio.'
+        ),
+    )
     layer_order = models.PositiveIntegerField(
         _('Layer order (z-index)'),
         default=0,
@@ -112,6 +137,13 @@ class ComponentOption(models.Model):
             'their images are managed per wall in the Option variants matrix.'
         ),
     )
+    sound_file = models.FileField(
+        _('Sound file'),
+        upload_to=design_sound_path,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['mp3', 'wav', 'ogg'])],
+        help_text=_('Audio clip for options in a Sound category. Leave empty for visual categories.'),
+    )
     is_default_selected = models.BooleanField(
         _('Selected by default'),
         default=False,
@@ -125,6 +157,23 @@ class ComponentOption(models.Model):
         ordering = ['sort_order']
         verbose_name = _('Component Option')
         verbose_name_plural = _('Component Options')
+
+    def clean(self):
+        super().clean()
+        if not self.category_id:
+            return
+
+        errors = {}
+        if self.category.kind == ComponentCategory.KIND_SOUND:
+            if not self.sound_file:
+                errors['sound_file'] = _('Options in a Sound category need an audio file.')
+            if self.projection_image:
+                errors['projection_image'] = _('Sound options do not paint a layer; leave this empty.')
+        elif self.sound_file:
+            errors['sound_file'] = _('Only options in a Sound category can carry an audio file.')
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return f"{self.category.name_en} — {self.name_en}"

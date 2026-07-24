@@ -403,3 +403,67 @@ class DesignCTASettingsAPITest(TestCase):
         response = self.client.get('/api/design/cta-settings/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'is_visible': False})
+
+
+from django.core.exceptions import ValidationError
+
+
+class SoundCategoryModelTest(TestCase):
+    def setUp(self):
+        self.walls = ComponentCategory.objects.create(
+            name_en="Walls", name_ar="Walls", layer_order=1,
+        )
+        self.sounds = ComponentCategory.objects.create(
+            name_en="Sound", name_ar="الصوت", layer_order=99,
+            kind=ComponentCategory.KIND_SOUND,
+        )
+
+    def test_categories_default_to_visual(self):
+        self.assertEqual(self.walls.kind, ComponentCategory.KIND_VISUAL)
+
+    def test_sound_option_with_audio_is_valid(self):
+        option = ComponentOption(
+            category=self.sounds, name_en="Chime", name_ar="جرس",
+            sound_file=SimpleUploadedFile("chime.mp3", b"ID3", content_type="audio/mpeg"),
+        )
+        option.full_clean(exclude=['thumbnail', 'projection_image'])
+
+    def test_sound_option_without_audio_is_rejected(self):
+        option = ComponentOption(category=self.sounds, name_en="Chime", name_ar="جرس")
+        with self.assertRaises(ValidationError) as ctx:
+            option.clean()
+        self.assertIn('sound_file', ctx.exception.error_dict)
+
+    def test_sound_option_with_projection_image_is_rejected(self):
+        option = ComponentOption(
+            category=self.sounds, name_en="Chime", name_ar="جرس",
+            sound_file=SimpleUploadedFile("chime.mp3", b"ID3", content_type="audio/mpeg"),
+            projection_image=SimpleUploadedFile("x.png", b"img", content_type="image/png"),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            option.clean()
+        self.assertIn('projection_image', ctx.exception.error_dict)
+
+    def test_visual_option_with_sound_file_is_rejected(self):
+        option = ComponentOption(
+            category=self.walls, name_en="Oak", name_ar="بلوط",
+            sound_file=SimpleUploadedFile("chime.mp3", b"ID3", content_type="audio/mpeg"),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            option.clean()
+        self.assertIn('sound_file', ctx.exception.error_dict)
+
+
+class SoundSerializerTest(TestCase):
+    def test_category_exposes_kind_and_option_exposes_sound_file(self):
+        sounds = ComponentCategory.objects.create(
+            name_en="Sound", name_ar="الصوت", layer_order=99,
+            kind=ComponentCategory.KIND_SOUND,
+        )
+        ComponentOption.objects.create(
+            category=sounds, name_en="Chime", name_ar="جرس",
+            sound_file=SimpleUploadedFile("chime.mp3", b"ID3", content_type="audio/mpeg"),
+        )
+        data = ComponentCategorySerializer(sounds).data
+        self.assertEqual(data['kind'], 'sound')
+        self.assertTrue(data['options'][0]['sound_file'].endswith('.mp3'))

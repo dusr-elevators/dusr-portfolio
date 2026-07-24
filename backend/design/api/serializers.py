@@ -14,7 +14,7 @@ class ComponentOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComponentOption
         fields = ['id', 'name_ar', 'name_en', 'thumbnail', 'projection_image',
-                  'is_default_selected', 'sort_order', 'variants']
+                  'sound_file', 'is_default_selected', 'sort_order', 'variants']
 
 
 class ComponentCategorySerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class ComponentCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ComponentCategory
-        fields = ['id', 'name_ar', 'name_en', 'layer_order', 'is_required', 'icon',
+        fields = ['id', 'name_ar', 'name_en', 'kind', 'layer_order', 'is_required', 'icon',
                   'depends_on_category', 'options']
 
     def get_icon(self, obj):

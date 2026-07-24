@@ -24,7 +24,7 @@ class LucideIconChoiceAdmin(admin.ModelAdmin):
 class ComponentOptionInline(admin.TabularInline):
     model = ComponentOption
     extra = 1
-    fields = ('name_en', 'name_ar', 'thumbnail', 'thumbnail_preview', 'projection_image', 'is_default_selected', 'sort_order', 'is_active')
+    fields = ('name_en', 'name_ar', 'thumbnail', 'thumbnail_preview', 'projection_image', 'sound_file', 'is_default_selected', 'sort_order', 'is_active')
     readonly_fields = ('thumbnail_preview',)
     ordering = ('sort_order',)
 
@@ -39,7 +39,7 @@ class ComponentOptionInline(admin.TabularInline):
 
 @admin.register(ComponentCategory)
 class ComponentCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name_en', 'name_ar', 'icon', 'layer_order', 'is_required', 'is_active', 'option_count')
+    list_display = ('name_en', 'name_ar', 'kind', 'icon', 'layer_order', 'is_required', 'is_active', 'option_count')
     list_filter = ('is_required', 'is_active')
     search_fields = ('name_en', 'name_ar')
     ordering = ('layer_order',)
