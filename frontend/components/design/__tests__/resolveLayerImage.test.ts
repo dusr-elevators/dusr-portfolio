@@ -1,7 +1,4 @@
 /**
- * Behavior scenarios for resolveLayerImage (documentation — no test runner is
- * wired up in this project; this file is kept type-checked by `npm run typecheck`).
- *
  * Contract:
  * 1. Independent category  -> option's own projection_image (null when empty).
  * 2. Dependent category    -> ONLY variant images are painted:
@@ -10,8 +7,9 @@
  *    - no variant for the selected parent     -> null (paint nothing)
  */
 
+import { describe, expect, it } from 'vitest';
 import { resolveLayerImage } from '../resolveLayerImage';
-import type { ComponentCategory, ComponentOption, Selections } from '../types';
+import type { ComponentCategory, ComponentOption } from '../types';
 
 const wallsCategory: ComponentCategory = {
   id: 1, name_ar: 'الجدران', name_en: 'Walls', layer_order: 1,
@@ -36,31 +34,29 @@ const topMirror: ComponentOption = {
   variants: [{ depends_on_option: 10, projection_image: '/img/top-on-marble.png' }],
 };
 
-const scenarios: { name: string; actual: string | null; expected: string | null }[] = [
-  {
-    name: 'independent category paints its own image',
-    actual: resolveLayerImage(wallsCategory, marbleWall, { 1: marbleWall }),
-    expected: '/img/marble.png',
-  },
-  {
-    name: 'dependent category paints the matching variant',
-    actual: resolveLayerImage(mirrorCategory, topMirror, { 1: marbleWall, 2: topMirror }),
-    expected: '/img/top-on-marble.png',
-  },
-  {
-    name: 'dependent category with no parent selected paints nothing',
-    actual: resolveLayerImage(mirrorCategory, topMirror, { 2: topMirror }),
-    expected: null,
-  },
-  {
-    name: 'dependent category with no variant for the parent paints nothing',
-    actual: resolveLayerImage(
-      mirrorCategory,
-      { ...topMirror, variants: [] },
-      { 1: marbleWall, 2: topMirror },
-    ),
-    expected: null,
-  },
-];
+describe('resolveLayerImage', () => {
+  it('paints an independent category\'s own image', () => {
+    expect(resolveLayerImage(wallsCategory, marbleWall, { 1: marbleWall }))
+      .toBe('/img/marble.png');
+  });
 
-export const allScenariosPass = scenarios.every(s => s.actual === s.expected);
+  it('paints nothing for an independent option with no projection image', () => {
+    const noImage: ComponentOption = { ...marbleWall, projection_image: null };
+    expect(resolveLayerImage(wallsCategory, noImage, { 1: noImage })).toBeNull();
+  });
+
+  it('paints the variant matching the selected parent', () => {
+    expect(resolveLayerImage(mirrorCategory, topMirror, { 1: marbleWall, 2: topMirror }))
+      .toBe('/img/top-on-marble.png');
+  });
+
+  it('paints nothing when no parent is selected', () => {
+    expect(resolveLayerImage(mirrorCategory, topMirror, { 2: topMirror })).toBeNull();
+  });
+
+  it('paints nothing when no variant exists for the selected parent', () => {
+    const noVariants: ComponentOption = { ...topMirror, variants: [] };
+    expect(resolveLayerImage(mirrorCategory, noVariants, { 1: marbleWall, 2: topMirror }))
+      .toBeNull();
+  });
+});

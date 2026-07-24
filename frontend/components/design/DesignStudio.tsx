@@ -9,39 +9,12 @@ import ProjectionCanvas from './ProjectionCanvas';
 import ExportButton from './ExportButton';
 import type { ComponentCategory, ComponentOption, Selections } from './types';
 import type { Lang } from '@/lib/lang';
-
-/**
- * Checks if a component option is available for the currently selected parent option.
- * Returns true if the option has a variant matching the current parent, false otherwise.
- */
-function isOptionAvailable(
-  option: ComponentOption,
-  currentParentOptionId: number | undefined
-): boolean {
-  if (!currentParentOptionId) return false;
-  if (!option.variants) return false;
-  return option.variants.some(v => v.depends_on_option === currentParentOptionId);
-}
-
-function applyDefaultSelections(categories: ComponentCategory[], initial: Selections): Selections {
-  const next = { ...initial };
-
-  for (const cat of [...categories].sort((a, b) => a.layer_order - b.layer_order)) {
-    if (next[cat.id]) continue;
-
-    const defaultOption = cat.options.find(option => option.is_default_selected);
-    if (!defaultOption) continue;
-
-    if (cat.depends_on_category != null) {
-      const parent = next[cat.depends_on_category];
-      if (!parent || !isOptionAvailable(defaultOption, parent.id)) continue;
-    }
-
-    next[cat.id] = defaultOption;
-  }
-
-  return next;
-}
+import {
+  applyDefaultSelections,
+  applySelection,
+  isOptionAvailable,
+  pruneOrphanedDependents,
+} from './selectionRules';
 
 interface DesignStudioProps {
   categories: ComponentCategory[];
@@ -67,15 +40,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
     const withDefaults = applyDefaultSelections(categories, initial);
 
     // Drop dependent selections whose variant no longer exists for the restored parent
-    for (const cat of categories) {
-      if (cat.depends_on_category != null && withDefaults[cat.id]) {
-        const parent = withDefaults[cat.depends_on_category];
-        if (!parent || !isOptionAvailable(withDefaults[cat.id], parent.id)) {
-          delete withDefaults[cat.id];
-        }
-      }
-    }
-    return withDefaults;
+    return pruneOrphanedDependents(categories, withDefaults);
   });
 
   // Sync selections → URL
@@ -89,24 +54,8 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
   }, [router]);
 
   const handleSelect = (option: ComponentOption) => {
-    const next = { ...selections };
-
-    if (next[activeTab]?.id === option.id) {
-      delete next[activeTab];
-    } else {
-      next[activeTab] = option;
-    }
-
-    // A dependent selection that has no variant for the new parent resets to "None"
-    for (const depCategory of categories) {
-      if (depCategory.depends_on_category === activeTab && next[depCategory.id]) {
-        const parent = next[activeTab];
-        if (!parent || !isOptionAvailable(next[depCategory.id], parent.id)) {
-          delete next[depCategory.id];
-        }
-      }
-    }
-
+    // Toggles the option and resets any dependent whose variant no longer applies
+    const next = applySelection(categories, selections, activeTab, option);
     setSelections(next);
     syncUrl(next);
   };
