@@ -1,7 +1,11 @@
+import tempfile
+from unittest import mock
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import TestCase
 
+from .management.commands import import_cabin_catalog
 from .models import ComponentCategory, ComponentOption, OptionVariant
 from .api.serializers import ComponentOptionSerializer
 
@@ -403,6 +407,70 @@ class DesignCTASettingsAPITest(TestCase):
         response = self.client.get('/api/design/cta-settings/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'is_visible': False})
+
+
+class CabinCatalogParserTest(TestCase):
+    """Parsing of the Elementor source page consumed by import_cabin_catalog."""
+
+    PAGE = '''
+    <div data-elementor-type="loop-item" data-elementor-id="4452"
+         class="elementor e-loop-item e-loop-item-11 post-11 side type-side">
+      <img src="https://src.test/wp-content/uploads/2025/10/3.jpg" />
+      <h2 class="elementor-heading-title">side 3</h2>
+    </div>
+    <div data-elementor-type="loop-item" data-elementor-id="4452"
+         class="elementor e-loop-item e-loop-item-12 post-12 handrail type-handrail">
+      <img src="https://src.test/wp-content/uploads/2025/07/3.jpg" />
+      <h2 class="elementor-heading-title">Hand Rail 3</h2>
+    </div>
+    <style id="loop-dynamic-4455">.e-loop-item-12 .elementor-element.elementor-element-19db539e
+      {background-image:url("https://src.test/wp-content/uploads/2025/07/rail-3.png");}</style>
+    <style id="loop-dynamic-4820">.e-loop-item-11 .elementor-element.elementor-element-19db539e
+      {background-image:url("https://src.test/Main-Wall-3.png");}
+      .e-loop-item-11 .elementor-element.elementor-element-2736c2a
+      {background-image:url("https://src.test/No-Mirror-3.png");}</style>
+    '''
+
+    def test_parses_thumbnail_name_type_and_image(self):
+        thumbnails = import_cabin_catalog.parse_thumbnails(self.PAGE)
+        self.assertEqual(
+            thumbnails[11],
+            {'type': 'side', 'name': 'side 3',
+             'thumbnail': 'https://src.test/wp-content/uploads/2025/10/3.jpg'},
+        )
+        self.assertEqual(thumbnails[12]['type'], 'handrail')
+
+    def test_parses_layers_keyed_by_item_and_element(self):
+        walls = import_cabin_catalog.parse_layers(self.PAGE, import_cabin_catalog.TPL_WALL)
+        self.assertEqual(walls[11][import_cabin_catalog.WALL_LAYER_ELEMENT],
+                         'https://src.test/Main-Wall-3.png')
+        self.assertEqual(walls[11]['2736c2a'], 'https://src.test/No-Mirror-3.png')
+
+        layers = import_cabin_catalog.parse_layers(self.PAGE, import_cabin_catalog.TPL_LAYER)
+        self.assertEqual(list(layers), [12])
+
+    def test_trailing_number_normalises_inconsistent_source_names(self):
+        self.assertEqual(import_cabin_catalog._trailing_number('Hand Rail 12'), 12)
+        self.assertEqual(import_cabin_catalog._trailing_number('cop3'), 3)
+        self.assertIsNone(import_cabin_catalog._trailing_number('No Mirror'))
+
+    def test_download_cache_distinguishes_urls_sharing_a_basename(self):
+        """The source reuses basenames across upload folders; the cache must not collide."""
+        command = import_cabin_catalog.Command()
+        command.downloads = 0
+        with tempfile.TemporaryDirectory() as cache_dir:
+            command.cache_dir = cache_dir
+            fetched = {
+                'https://src.test/wp-content/uploads/2025/10/3.jpg': b'wall-three',
+                'https://src.test/wp-content/uploads/2025/07/3.jpg': b'rail-three',
+            }
+            with mock.patch.object(import_cabin_catalog, '_fetch', side_effect=lambda u: fetched[u]):
+                for url, expected in fetched.items():
+                    self.assertEqual(command.download(url)[1], expected)
+                # Second pass must come from the cache, still without crossing over.
+                for url, expected in fetched.items():
+                    self.assertEqual(command.download(url)[1], expected)
+        self.assertEqual(command.downloads, 2)
 
 
 from django.core.exceptions import ValidationError
