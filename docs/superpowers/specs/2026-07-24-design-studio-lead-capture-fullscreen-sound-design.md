@@ -30,7 +30,6 @@ Out of scope, deliberately:
   and the variant-resolution logic with Pillow and a PDF renderer — substantial work producing two
   renderers that drift apart. Uploading costs a size cap and a type check, which the endpoint needs
   regardless.
-- Wiring up a frontend test runner (see "Testing").
 - Structured querying of leads by selected option, and archiving the generated PDF on the lead
   record — the text snapshot covers the sales use case; both are cheap to add later.
 - Gating the existing "Request Quotation" WhatsApp button. It already identifies the user by phone
@@ -234,7 +233,7 @@ recorded as text, which is also what a fabricator or salesperson needs.
 
 ## Testing
 
-Each side follows its own existing convention.
+Both sides now have real, automated coverage running in CI.
 
 **Backend — real, automated**, extending `backend/design/tests.py`:
 
@@ -248,15 +247,42 @@ Each side follows its own existing convention.
   `email_sent: false`.** This is the highest-value test here: it is the path that loses a customer's
   details if it regresses, and the one least likely to be exercised by hand.
 
-**Frontend — documentation plus typecheck.** The files in `components/design/__tests__/` are
-explicitly documentation, not executable: `resolveLayerImage.test.ts` states that no test runner is
-wired up and that the file is kept honest by `npm run typecheck`. New behaviour is documented in that
-same style, covering delivery-mode branching and sound selection.
+**Frontend — real, automated.** Vitest with React Testing Library and jsdom is wired up (see
+"Prerequisite" below), so new behaviour gets executable tests:
 
-Standing up Jest or Vitest is a real gap but is its own piece of work; folding it into this feature
-would balloon the scope. It should be raised separately.
+- `useDesignPdf()` builds a PDF blob from a given selection set.
+- Delivery-mode branching: each of the three modes triggers the right combination of form, POST, and
+  local download — including the `form_email_only` fallback when `email_sent` comes back false.
+- `LeadCaptureModal` validation: each field rejects empty and malformed input, and submit stays
+  disabled until all three are valid.
+- `SoundOptionList`: selecting a sound is independent of auditioning it, and starting one sound stops
+  the previous one.
+- `FullscreenPreview`: opens and closes, and — the regression that would be expensive to find by hand
+  — `canvasRef`'s element is still in place after closing, so the PDF export target survives.
 
-**Manual verification**, recorded in `docs/testing/` as the last two features were:
+### Prerequisite: test infrastructure
+
+This landed before the feature work, as its own commit, so the new components arrive with real
+coverage rather than retrofitted coverage.
+
+Previously the frontend had no test runner at all — the files in `components/design/__tests__/` said
+so outright and were kept honest only by `npm run typecheck`, and CI built and deployed Docker images
+without running any tests on either side. What changed:
+
+- **Vitest + React Testing Library + jsdom**, configured in `vitest.config.ts` with the `@/*` alias
+  mirrored from `tsconfig.json`. No `globals`, so tests import `describe`/`it`/`expect` explicitly and
+  `npm run typecheck` resolves them without widening tsconfig's `types`.
+- **Pure selection logic extracted** from `DesignStudio.tsx` into `components/design/selectionRules.ts`
+  (`isOptionAvailable`, `applyDefaultSelections`, `pruneOrphanedDependents`, `applySelection`),
+  following the split `resolveLayerImage.ts` already established. This was necessary, not cosmetic:
+  the old `DesignStudio.test.tsx` re-declared that logic locally, so it could pass while the component
+  was broken. The tests now import the same code the component runs.
+- **CI gains `frontend-test` and `backend-test` jobs**, and `build` now `needs` both. Since `deploy`
+  already needed `build`, a failing test can no longer reach the production VPS.
+
+### Manual verification
+
+Recorded in `docs/testing/` as the last two features were:
 
 - All three delivery modes, switched from the admin without a redeploy.
 - A real email arriving with an attachment that opens as a valid PDF.
