@@ -44,6 +44,9 @@ interface LeadCaptureModalProps {
   error?: string;
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export default function LeadCaptureModal({
   open, onClose, onSubmit, lang, submitting = false, error,
 }: LeadCaptureModalProps) {
@@ -51,12 +54,36 @@ export default function LeadCaptureModal({
   const [details, setDetails] = useState<LeadDetails>({ full_name: '', email: '', mobile: '' });
   const [errors, setErrors] = useState<FieldErrors>({});
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return;
+
+      const focusable = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey) {
+        if (active === first || !panelRef.current.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !panelRef.current.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
 
@@ -74,7 +101,8 @@ export default function LeadCaptureModal({
 
   if (!open) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     const trimmed: LeadDetails = {
       full_name: details.full_name.trim(),
       email: details.email.trim(),
@@ -105,12 +133,13 @@ export default function LeadCaptureModal({
         value={details[key]}
         onChange={e => setDetails({ ...details, [key]: e.target.value })}
         aria-invalid={!!errors[key]}
+        aria-describedby={errors[key] ? `lead-${key}-error` : undefined}
         className={`rounded-xl border-2 bg-[#1a1a1a] px-4 py-3 text-sm text-[#e5e2e1] outline-none transition-colors ${
           errors[key] ? 'border-red-500' : 'border-[#2a2a2a] focus:border-[#FF5722]'
         }`}
       />
       {errors[key] && (
-        <p role="alert" className="text-xs text-red-400">{errors[key]}</p>
+        <p id={`lead-${key}-error`} role="alert" className="text-xs text-red-400">{errors[key]}</p>
       )}
     </div>
   );
@@ -121,6 +150,7 @@ export default function LeadCaptureModal({
       onClick={onClose}
     >
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={isAr ? 'استلام التصميم' : 'Receive your elevator design'}
@@ -146,29 +176,30 @@ export default function LeadCaptureModal({
             : 'Enter your details and we will email you the elevator design as a PDF.'}
         </p>
 
-        <div className="mt-5 flex flex-col gap-4">
-          {field('full_name', isAr ? 'الاسم' : 'Full name', 'text', 'name', firstFieldRef)}
-          {field('email', isAr ? 'البريد الإلكتروني' : 'Email', 'email', 'email')}
-          {field('mobile', isAr ? 'رقم الجوال' : 'Mobile number', 'tel', 'tel')}
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mt-5 flex flex-col gap-4">
+            {field('full_name', isAr ? 'الاسم' : 'Full name', 'text', 'name', firstFieldRef)}
+            {field('email', isAr ? 'البريد الإلكتروني' : 'Email', 'email', 'email')}
+            {field('mobile', isAr ? 'رقم الجوال' : 'Mobile number', 'tel', 'tel')}
+          </div>
 
-        {error && (
-          <p role="alert" className="mt-4 text-sm text-red-400">{error}</p>
-        )}
+          {error && (
+            <p role="alert" className="mt-4 text-sm text-red-400">{error}</p>
+          )}
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting}
-          className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-all ${
-            submitting
-              ? 'cursor-not-allowed bg-[#2a2a2a] text-[#666]'
-              : 'bg-[#FF5722] text-white shadow-lg shadow-[#FF5722]/25 hover:bg-[#e64a19]'
-          }`}
-        >
-          {submitting && <Loader2 size={16} className="animate-spin" />}
-          {isAr ? 'إرسال' : 'Send my design'}
-        </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-all ${
+              submitting
+                ? 'cursor-not-allowed bg-[#2a2a2a] text-[#666]'
+                : 'bg-[#FF5722] text-white shadow-lg shadow-[#FF5722]/25 hover:bg-[#e64a19]'
+            }`}
+          >
+            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {isAr ? 'إرسال' : 'Send my design'}
+          </button>
+        </form>
 
         {/*
           No `/privacy-policy` route exists anywhere in this project (verified: not

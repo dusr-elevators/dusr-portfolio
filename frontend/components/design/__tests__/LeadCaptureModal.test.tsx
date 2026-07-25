@@ -93,4 +93,55 @@ describe('LeadCaptureModal', () => {
     expect(screen.getByText(/Privacy Policy/i)).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
+
+  it('submits the trimmed details when Enter is pressed in a field with valid data', () => {
+    const onSubmit = vi.fn();
+    render(<LeadCaptureModal open onClose={vi.fn()} onSubmit={onSubmit} lang="en" />);
+
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: '  Sara Ahmed  ' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'sara@example.com' } });
+    fireEvent.change(screen.getByLabelText(/mobile/i), { target: { value: '+966501234567' } });
+
+    fireEvent.submit(screen.getByLabelText(/mobile/i).closest('form')!);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledWith(validDetails);
+  });
+
+  it('does not submit when Enter is pressed with invalid fields, and shows the errors', () => {
+    const onSubmit = vi.fn();
+    render(<LeadCaptureModal open onClose={vi.fn()} onSubmit={onSubmit} lang="en" />);
+
+    fireEvent.submit(screen.getByLabelText(/name/i).closest('form')!);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
+  });
+
+  it('traps Tab focus within the dialog, wrapping from the last element to the first', () => {
+    render(<LeadCaptureModal open onClose={vi.fn()} onSubmit={vi.fn()} lang="en" />);
+
+    // Focusable order in the panel is: close (X) button, then the three fields, then submit.
+    const closeButton = screen.getByRole('button', { name: /close|إغلاق/i });
+    const submitButton = screen.getByRole('button', { name: /send|إرسال/i });
+    submitButton.focus();
+    expect(document.activeElement).toBe(submitButton);
+
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: false });
+
+    expect(document.activeElement).toBe(closeButton);
+  });
+
+  it('traps Shift+Tab focus within the dialog, wrapping from the first element to the last', () => {
+    render(<LeadCaptureModal open onClose={vi.fn()} onSubmit={vi.fn()} lang="en" />);
+
+    const closeButton = screen.getByRole('button', { name: /close|إغلاق/i });
+    const submitButton = screen.getByRole('button', { name: /send|إرسال/i });
+    closeButton.focus();
+    expect(document.activeElement).toBe(closeButton);
+
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+
+    expect(document.activeElement).toBe(submitButton);
+  });
 });
