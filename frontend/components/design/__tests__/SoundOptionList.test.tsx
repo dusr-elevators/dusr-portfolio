@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import SoundOptionList from '../SoundOptionList';
 import type { ComponentOption } from '../types';
@@ -92,5 +93,51 @@ describe('SoundOptionList', () => {
 
     // Audio must not follow the user off the page.
     expect(pauseMock).toHaveBeenCalled();
+  });
+
+  // DesignStudio keys SoundOptionList by `activeCategory.id` so that switching
+  // between two sound categories forces a remount (and thus this component's
+  // mount-only cleanup effect) instead of reusing the instance. This wrapper
+  // reproduces that exact contract — a category switch that changes `key` —
+  // without pulling in DesignStudio's next/navigation dependencies.
+  function CategorySwitcher() {
+    const [categoryId, setCategoryId] = useState(1);
+    return (
+      <div>
+        <button type="button" onClick={() => setCategoryId(2)}>
+          switch category
+        </button>
+        <SoundOptionList
+          key={categoryId}
+          options={[chime]}
+          selectedId={null}
+          onSelect={vi.fn()}
+          lang="en"
+        />
+      </div>
+    );
+  }
+
+  it('stops audio from the old category when switching sound categories', () => {
+    render(<CategorySwitcher />);
+
+    fireEvent.click(screen.getByRole('button', { name: /play classic chime/i }));
+    expect(playMock).toHaveBeenCalledTimes(1);
+    pauseMock.mockClear();
+
+    // Switching the active sound category changes `key`, which must remount
+    // SoundOptionList and run its cleanup effect, pausing the old audio.
+    fireEvent.click(screen.getByRole('button', { name: /switch category/i }));
+
+    expect(pauseMock).toHaveBeenCalled();
+  });
+
+  it('renders Arabic labels when lang is ar', () => {
+    render(
+      <SoundOptionList options={[chime, bell]} selectedId={null} onSelect={vi.fn()} lang="ar" />,
+    );
+
+    expect(screen.getByRole('radio', { name: 'بدون صوت' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'تشغيل جرس كلاسيكي' })).toBeInTheDocument();
   });
 });

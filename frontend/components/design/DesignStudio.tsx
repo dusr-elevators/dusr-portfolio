@@ -134,6 +134,7 @@ export default function DesignStudio({ categories, lang, deliveryMode }: DesignS
                 </h2>
                 {activeCategory.kind === 'sound' ? (
                   <SoundOptionList
+                    key={activeCategory.id}
                     options={activeCategory.options}
                     selectedId={selections[activeTab]?.id ?? null}
                     onSelect={handleSelect}
