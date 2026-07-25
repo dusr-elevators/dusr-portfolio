@@ -62,12 +62,22 @@ export default function ExportButton({
   }, [canvasRef]);
 
   useEffect(() => {
-    if (!modalOpen) return;
+    if (!modalOpen || pdfPromiseRef.current) return;
     // Build while the user types, so submitting does not then wait on capture.
+    // Skipped when a build is already cached (e.g. reopening after a close, or
+    // retrying a failed submit) so we never run two captures against the
+    // shared off-screen node at once.
     startBuildingPdf().catch(() => {
       /* surfaced on submit */
     });
   }, [modalOpen, startBuildingPdf]);
+
+  useEffect(() => {
+    // The modal covers the editing UI, so selections only change while it is
+    // closed - safe to drop any cached build and force a fresh capture.
+    pdfPromiseRef.current = null;
+    setProjectionSrc('');
+  }, [selections]);
 
   const handleExportClick = async () => {
     if (!isReady) return;
@@ -132,14 +142,18 @@ export default function ExportButton({
           ? isAr ? 'تم إرسال التصميم إلى بريدك الإلكتروني.' : 'Your design is on its way to your inbox.'
           : isAr ? 'تعذر إرسال البريد، وتم تنزيل التصميم بدلاً من ذلك.' : "We couldn't send the email, so we downloaded your design instead.",
       );
+      // Only drop the cached build once it has actually been consumed by a
+      // successful submit - a failed submit (below, or a non-OK response)
+      // keeps it so a retry reuses the already-built blob instead of paying
+      // for another multi-second capture.
+      setProjectionSrc('');
+      pdfPromiseRef.current = null;
     } catch {
       setServerError(
         isAr ? 'تعذر إرسال التصميم. يرجى المحاولة مرة أخرى.' : 'We could not send your design. Please try again.',
       );
     } finally {
       setSubmitting(false);
-      setProjectionSrc('');
-      pdfPromiseRef.current = null;
     }
   };
 

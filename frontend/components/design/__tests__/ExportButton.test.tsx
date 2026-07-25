@@ -147,4 +147,61 @@ describe('ExportButton delivery modes', () => {
       expect(screen.getByText(/could not send|too many/i)).toBeInTheDocument(),
     );
   });
+
+  it('builds the PDF exactly once across an open-then-submit flow', async () => {
+    renderButton('form_email_download');
+    fireEvent.click(screen.getByRole('button', { name: /download pdf/i }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await waitFor(() => expect(buildDesignPdfMock).toHaveBeenCalled());
+    fillAndSubmitForm();
+
+    await waitFor(() => expect(downloadPdfBlobMock).toHaveBeenCalled());
+    expect(buildDesignPdfMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start a second build when the modal is closed and reopened', async () => {
+    renderButton('form_email_download');
+    fireEvent.click(screen.getByRole('button', { name: /download pdf/i }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await waitFor(() => expect(buildDesignPdfMock).toHaveBeenCalledTimes(1));
+
+    // Close via the modal's own close control (not unmount) so the cached
+    // build's ref survives, matching how a real user would dismiss it.
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /download pdf/i }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    // Give any (incorrect) second build a chance to start before asserting.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(buildDesignPdfMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reuses the cached build on a retry after a failed submit', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: false,
+      status: 429,
+      json: async () => ({ detail: 'Too many requests' }),
+    })));
+
+    renderButton('form_email_download');
+    fireEvent.click(screen.getByRole('button', { name: /download pdf/i }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await waitFor(() => expect(buildDesignPdfMock).toHaveBeenCalledTimes(1));
+
+    fillAndSubmitForm();
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.getByText(/could not send|too many/i)).toBeInTheDocument(),
+    );
+
+    fillAndSubmitForm();
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+
+    expect(buildDesignPdfMock).toHaveBeenCalledTimes(1);
+  });
 });
