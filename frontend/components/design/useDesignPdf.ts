@@ -67,3 +67,12 @@ export function downloadPdfBlob(blob: Blob, filename = 'dusr-elevator-design.pdf
   link.click();
   URL.revokeObjectURL(url);
 }
+
+/** Bare base64 for the JSON payload — no `data:...;base64,` prefix. */
+export async function blobToBase64(blob: Blob): Promise<string> {
+  const buffer = await blob.arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}

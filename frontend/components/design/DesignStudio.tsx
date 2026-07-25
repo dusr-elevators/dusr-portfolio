@@ -7,7 +7,7 @@ import OptionGrid from './OptionGrid';
 import DependentOptionRadioList from './DependentOptionRadioList';
 import ProjectionCanvas from './ProjectionCanvas';
 import ExportButton from './ExportButton';
-import type { ComponentCategory, ComponentOption, Selections } from './types';
+import type { ComponentCategory, ComponentOption, DeliveryMode, Selections } from './types';
 import type { Lang } from '@/lib/lang';
 import {
   applyDefaultSelections,
@@ -19,9 +19,10 @@ import {
 interface DesignStudioProps {
   categories: ComponentCategory[];
   lang: Lang;
+  deliveryMode: DeliveryMode;
 }
 
-export default function DesignStudio({ categories, lang }: DesignStudioProps) {
+export default function DesignStudio({ categories, lang, deliveryMode }: DesignStudioProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -174,6 +175,7 @@ export default function DesignStudio({ categories, lang }: DesignStudioProps) {
               categories={categories}
               selections={selections}
               lang={lang}
+              deliveryMode={deliveryMode}
             />
           </div>
         </div>

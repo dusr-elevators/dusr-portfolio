@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { isLang, type Lang } from '@/lib/lang';
 import DesignStudio from '@/components/design/DesignStudio';
-import type { ComponentCategory } from '@/components/design/types';
+import type { ComponentCategory, DeliveryMode } from '@/components/design/types';
 
 const apiBase = process.env.API_INTERNAL_URL || 'http://localhost:8000';
 
@@ -43,6 +43,23 @@ async function fetchCategories(): Promise<ComponentCategory[]> {
   }
 }
 
+async function fetchDeliveryMode(): Promise<DeliveryMode> {
+  const url = `${apiBase}/api/design/export-settings/`;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      console.error(`Failed to fetch export settings from ${url}: ${res.status} ${res.statusText}`);
+      return 'form_email_download';
+    }
+    const data = await res.json();
+    return data.delivery_mode as DeliveryMode;
+  } catch (error) {
+    console.error(`Failed to fetch export settings from ${url}:`, error);
+    // Fail closed: a backend hiccup must not silently switch lead capture off.
+    return 'form_email_download';
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -69,11 +86,14 @@ export default async function DesignPage({
   const { lang } = await params;
   if (!isLang(lang)) notFound();
 
-  const categories = await fetchCategories();
+  const [categories, deliveryMode] = await Promise.all([
+    fetchCategories(),
+    fetchDeliveryMode(),
+  ]);
 
   return (
     <Suspense>
-      <DesignStudio categories={categories} lang={lang as Lang} />
+      <DesignStudio categories={categories} lang={lang as Lang} deliveryMode={deliveryMode} />
     </Suspense>
   );
 }
