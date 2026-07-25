@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import ComponentTabs from './ComponentTabs';
 import OptionGrid from './OptionGrid';
 import DependentOptionRadioList from './DependentOptionRadioList';
+import SoundOptionList from './SoundOptionList';
 import ProjectionCanvas from './ProjectionCanvas';
 import ExportButton from './ExportButton';
 import type { ComponentCategory, ComponentOption, DeliveryMode, Selections } from './types';
@@ -131,7 +132,15 @@ export default function DesignStudio({ categories, lang, deliveryMode }: DesignS
                     </span>
                   )}
                 </h2>
-                {activeCategory.depends_on_category != null ? (
+                {activeCategory.kind === 'sound' ? (
+                  <SoundOptionList
+                    options={activeCategory.options}
+                    selectedId={selections[activeTab]?.id ?? null}
+                    onSelect={handleSelect}
+                    lang={lang}
+                    label={lang === 'ar' ? activeCategory.name_ar : activeCategory.name_en}
+                  />
+                ) : activeCategory.depends_on_category != null ? (
                   (() => {
                     const parentCat = categories.find(c => c.id === activeCategory.depends_on_category);
                     const parentSelection = selections[activeCategory.depends_on_category];
