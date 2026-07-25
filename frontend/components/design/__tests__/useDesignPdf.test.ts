@@ -53,6 +53,52 @@ describe('buildDesignPdf', () => {
     expect(setProjectionSrc).toHaveBeenCalledWith('data:image/png;base64,AAA');
   });
 
+  it('captures both canvases with the exact PDF-clarity options', async () => {
+    await buildDesignPdf({
+      canvasEl: document.createElement('div'),
+      getPrintEl: () => document.createElement('div'),
+      setProjectionSrc: vi.fn(),
+      settleMs: 0,
+    });
+
+    // A dropped scale:2 would silently halve the exported PDF's resolution.
+    const expectedOptions = { useCORS: true, backgroundColor: '#ffffff', scale: 2 };
+    expect(html2canvasMock.mock.calls[0][1]).toEqual(expectedOptions);
+    expect(html2canvasMock.mock.calls[1][1]).toEqual(expectedOptions);
+  });
+
+  it('fits a portrait print canvas to the full A4 height', async () => {
+    // ratio 1200/800 = 1.5 → 210*1.5 = 315, clamped to the 297mm page height.
+    html2canvasMock.mockReset().mockResolvedValue(fakeCanvas(800, 1200));
+
+    await buildDesignPdf({
+      canvasEl: document.createElement('div'),
+      getPrintEl: () => document.createElement('div'),
+      setProjectionSrc: vi.fn(),
+      settleMs: 0,
+    });
+
+    expect(addImageMock).toHaveBeenCalledWith(
+      'data:image/png;base64,AAA', 'PNG', 0, 0, 210, 297,
+    );
+  });
+
+  it('scales a short print canvas to its natural height, below the page', async () => {
+    // ratio 500/1000 = 0.5 → 210*0.5 = 105, under 297 so it stays 105.
+    html2canvasMock.mockReset().mockResolvedValue(fakeCanvas(1000, 500));
+
+    await buildDesignPdf({
+      canvasEl: document.createElement('div'),
+      getPrintEl: () => document.createElement('div'),
+      setProjectionSrc: vi.fn(),
+      settleMs: 0,
+    });
+
+    expect(addImageMock).toHaveBeenCalledWith(
+      'data:image/png;base64,AAA', 'PNG', 0, 0, 210, 105,
+    );
+  });
+
   it('returns a PDF blob', async () => {
     const result = await buildDesignPdf({
       canvasEl: document.createElement('div'),
@@ -74,5 +120,17 @@ describe('buildDesignPdf', () => {
         settleMs: 0,
       }),
     ).rejects.toThrow('projection canvas');
+  });
+
+  it('throws when the print layout is missing', async () => {
+    // The projection capture runs first, then this guard fires.
+    await expect(
+      buildDesignPdf({
+        canvasEl: document.createElement('div'),
+        getPrintEl: () => null,
+        setProjectionSrc: vi.fn(),
+        settleMs: 0,
+      }),
+    ).rejects.toThrow('print layout');
   });
 });
