@@ -74,6 +74,28 @@ describe('FullscreenPreview', () => {
     fireEvent.click(screen.getByRole('button', { name: /close|إغلاق/i }));
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it('closes when the backdrop is clicked', () => {
+    const onClose = vi.fn();
+    render(
+      <FullscreenPreview open onClose={onClose} categories={[walls]} selections={{ 1: oak }} lang="en" />,
+    );
+
+    // Clicking the dialog backdrop itself closes; the inner panel stops propagation.
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close when the cabin panel itself is clicked', () => {
+    const onClose = vi.fn();
+    render(
+      <FullscreenPreview open onClose={onClose} categories={[walls]} selections={{ 1: oak }} lang="en" />,
+    );
+
+    // The layer image lives inside the panel, which stops propagation to the backdrop.
+    fireEvent.click(screen.getByAltText('Oak'));
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
 
 describe('ProjectionCanvas fullscreen trigger', () => {
@@ -93,6 +115,17 @@ describe('ProjectionCanvas fullscreen trigger', () => {
       />,
     );
     expect(screen.getByRole('button', { name: /enlarge|تكبير/i })).toBeInTheDocument();
+  });
+
+  it('never paints a sound category in its own preview', () => {
+    render(
+      <ProjectionCanvas
+        categories={[walls, sound]} selections={{ 1: oak, 2: chime }} lang="en"
+        canvasRef={{ current: null }}
+      />,
+    );
+    expect(screen.getByAltText('Oak')).toBeInTheDocument();
+    expect(screen.queryByAltText('Chime')).not.toBeInTheDocument();
   });
 
   it('keeps the export capture target mounted after opening and closing fullscreen', () => {
