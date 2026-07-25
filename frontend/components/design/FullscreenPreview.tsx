@@ -65,17 +65,22 @@ export default function FullscreenPreview({
           onClose();
         }}
         aria-label={isAr ? 'إغلاق' : 'Close'}
-        className={`absolute top-5 rounded-full bg-[#2a2a2a]/80 p-2 text-[#e5e2e1] transition-colors hover:bg-[#2a2a2a] ${
+        className={`absolute top-5 z-10 rounded-full bg-[#2a2a2a]/80 p-2 text-[#e5e2e1] transition-colors hover:bg-[#2a2a2a] ${
           isAr ? 'left-5' : 'right-5'
         }`}
       >
         <X size={20} />
       </button>
 
+      {/* Ratio matches the projection artwork (1045x1200) so the layers fill the
+          box rather than sitting inside white bands. Driving the box off width
+          — capped by both the viewport and the 90dvh height budget — keeps the
+          ratio intact on narrow screens, where a fixed height plus `max-w-full`
+          would have squashed the box and letterboxed it again. */}
       <div
         onClick={e => e.stopPropagation()}
-        className="relative max-w-full overflow-hidden rounded-2xl bg-white shadow-2xl"
-        style={{ aspectRatio: '2 / 3', height: '90dvh' }}
+        className="relative isolate overflow-hidden rounded-2xl bg-white shadow-2xl"
+        style={{ aspectRatio: '1045 / 1200', width: 'min(100%, calc(90dvh * 1045 / 1200))' }}
       >
         {[...categories]
           .filter(cat => cat.kind !== 'sound')
@@ -93,7 +98,7 @@ export default function FullscreenPreview({
                 fill
                 className="object-contain"
                 style={{ zIndex: cat.layer_order }}
-                sizes="90vh"
+                sizes="(max-width: 78vh) 100vw, 78vh"
               />
             );
           })}

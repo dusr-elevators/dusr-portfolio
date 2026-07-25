@@ -27,10 +27,16 @@ export default function ProjectionCanvas({ categories, selections, lang, canvasR
       </p>
 
       <div className="relative w-full max-w-[320px]">
-        {/* The exported area — white background for PDF clarity. */}
+        {/* The exported area — white background for PDF clarity.
+            The aspect ratio matches the projection artwork (1045x1200, and the
+            941x1080 / 2230x2560 sources scale to the same ratio) so `object-contain`
+            fills the box instead of letterboxing it — the whitespace was being
+            baked into the PDF export as well.
+            `isolate` keeps the layers' z-indexes in their own stacking context so
+            they can't paint over (and swallow clicks meant for) the Enlarge button. */}
         <div
           ref={canvasRef}
-          className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-white shadow-2xl"
+          className="relative isolate aspect-[1045/1200] w-full overflow-hidden rounded-2xl bg-white shadow-2xl"
         >
           {!hasAny && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -71,7 +77,7 @@ export default function ProjectionCanvas({ categories, selections, lang, canvasR
             type="button"
             onClick={() => setFullscreen(true)}
             aria-label={isAr ? 'تكبير' : 'Enlarge'}
-            className={`absolute bottom-3 rounded-full bg-[#131313]/70 p-2 text-white backdrop-blur transition-colors hover:bg-[#131313] ${
+            className={`absolute bottom-3 z-10 rounded-full bg-[#131313]/70 p-2 text-white backdrop-blur transition-colors hover:bg-[#131313] ${
               isAr ? 'left-3' : 'right-3'
             }`}
           >
