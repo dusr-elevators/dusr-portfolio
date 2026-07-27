@@ -6,12 +6,15 @@
 'use client';
 
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { PhoneCall, MapPin, Send, CheckCircle2, RefreshCw } from 'lucide-react';
+import { ExternalLink, PhoneCall, MapPin, Send, CheckCircle2, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ContactFormProps {
   lang: 'ar' | 'en';
 }
+
+const mapEmbedUrl = 'https://www.google.com/maps?q=24.7161718,46.8270739&z=17&output=embed';
+const mapDirectionsUrl = 'https://www.google.com/maps/place/%D9%85%D8%B5%D8%A7%D8%B9%D8%AF+%D8%AF%D8%B3%D8%B1%E2%80%AD/@24.7161718,46.8270739,17z/data=!3m1!4b1!4m6!3m5!1s0x3e2fa984488247cd:0x8cb39d6f240f3efd!8m2!3d24.7161718!4d46.8270739!16s%2Fg%2F11npwpjqn2';
 
 export default function ContactForm({ lang }: ContactFormProps) {
   const [formData, setFormData] = useState({
@@ -113,7 +116,7 @@ export default function ContactForm({ lang }: ContactFormProps) {
 
   return (
     <section className="py-24 md:py-32 px-6 md:px-16 bg-[#131111]" id="contact">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+      <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-12 lg:gap-24">
 
         {/* Info Column (takes 5 cols) */}
         <div className="lg:col-span-5 flex flex-col justify-between">
@@ -146,6 +149,36 @@ export default function ContactForm({ lang }: ContactFormProps) {
                       : 'Riyadh, Khurais Road'}
                   </p>
                 </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-[#444748]/60 bg-[#202020]">
+                <div className="flex flex-col gap-4 border-b border-[#444748]/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="font-sans text-sm font-bold text-[#e5e2e1]">
+                      {lang === 'ar' ? 'موقعنا على الخريطة' : 'Our location on the map'}
+                    </h4>
+                    <p className="mt-1 font-sans text-xs text-[#c4c7c7]">
+                      {lang === 'ar' ? 'مصاعد دسر، الرياض' : 'Dusr Elevators, Riyadh'}
+                    </p>
+                  </div>
+                  <a
+                    href={mapDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#444748] px-4 py-2 font-sans text-xs font-bold text-[#e5e2e1] transition-all hover:border-[#FF5722] hover:text-[#FF5722]"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>{lang === 'ar' ? 'فتح في خرائط Google' : 'Open in Google Maps'}</span>
+                  </a>
+                </div>
+                <iframe
+                  title={lang === 'ar' ? 'خريطة موقع مصاعد دسر' : 'Map showing Dusr Elevators location'}
+                  src={mapEmbedUrl}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-72 w-full border-0 sm:h-80"
+                  allowFullScreen
+                />
               </div>
 
               <div className="flex gap-4 items-start">

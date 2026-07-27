@@ -143,12 +143,12 @@ EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'true').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('DJANGO_EMAIL_USE_SSL', 'false').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', 'support@dusr.sa')
-EMAIL_HOST_PASSWORD = os.environ.get('email-password') or os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Dusr <support@dusr.sa>')
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', 'dusrelevators@outlook.com')
+EMAIL_HOST_PASSWORD = os.environ.get('email-password') or os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '123456789ABCD')
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Dusr <dusrelevators@outlook.com>')
 
 # Contact Form settings
-CONTACT_EMAIL = os.environ.get('DJANGO_CONTACT_EMAIL', 'support@dusr.sa')
+CONTACT_EMAIL = os.environ.get('DJANGO_CONTACT_EMAIL', 'dusrelevators@outlook.com')
 
 
 # CKEditor 5 Configuration
