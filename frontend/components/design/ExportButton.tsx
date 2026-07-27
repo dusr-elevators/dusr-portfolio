@@ -197,7 +197,10 @@ export default function ExportButton({
         error={serverError}
       />
 
-      <div className="flex w-full max-w-xs flex-col items-stretch gap-2">
+      {/* Width is pinned to the preview's own max width so the two edges agree.
+          max-w-xs happens to be 320px today, but it is rem-based and would drift
+          from the canvas if the root font size ever changed. */}
+      <div className="flex w-full max-w-[320px] flex-col items-stretch gap-2">
         <button
           onClick={handleExportClick}
           disabled={!isReady || loading}

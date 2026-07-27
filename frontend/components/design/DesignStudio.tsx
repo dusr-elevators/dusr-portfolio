@@ -172,8 +172,10 @@ export default function DesignStudio({ categories, lang, deliveryMode }: DesignS
             )}
           </div>
 
-          {/* Right: projection + export */}
-          <div className="flex min-w-0 flex-col gap-6 items-center lg:items-start">
+          {/* Right: projection + export. Stays centred at every breakpoint so the
+              button stack lines up with the preview — the column is wider than
+              both, and aligning to the start only moved the buttons off-centre. */}
+          <div className="flex min-w-0 flex-col gap-6 items-center">
             <ProjectionCanvas
               categories={categories}
               selections={selections}
