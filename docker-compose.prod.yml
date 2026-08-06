@@ -17,6 +17,13 @@ services:
       # redirect off prevents internal HTTP calls from the web container from
       # being redirected to HTTPS on the plain gunicorn port.
       DJANGO_SECURE_SSL_REDIRECT: "false"
+      DJANGO_EMAIL_HOST: ${DJANGO_EMAIL_HOST}
+      DJANGO_EMAIL_PORT: ${DJANGO_EMAIL_PORT}
+      DJANGO_EMAIL_USE_TLS: ${DJANGO_EMAIL_USE_TLS}
+      DJANGO_EMAIL_HOST_USER: ${DJANGO_EMAIL_HOST_USER}
+      DJANGO_EMAIL_HOST_PASSWORD: ${DJANGO_EMAIL_HOST_PASSWORD}
+      DJANGO_DEFAULT_FROM_EMAIL: ${DJANGO_DEFAULT_FROM_EMAIL}
+      DJANGO_CONTACT_EMAIL: ${DJANGO_CONTACT_EMAIL}
     volumes:
       - backend_media:/app/media
       - backend_staticfiles:/app/staticfiles
