@@ -144,7 +144,7 @@ EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'true').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('DJANGO_EMAIL_USE_SSL', 'false').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', 'info@dusr.sa')
-EMAIL_HOST_PASSWORD = os.environ.get('email-password') or os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', 'F(855548267000ah')
+EMAIL_HOST_PASSWORD = os.environ.get('email-password') or os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', 'k207JkCPPGHaok')
 DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Dusr <info@dusr.sa>')
 
 # Contact Form settings
