@@ -131,6 +131,10 @@ export default function ExportButton({
 
       if (!response.ok) {
         const detail = await readErrorDetail(response);
+        console.error('Design lead submission rejected', {
+          status: response.status,
+          detail,
+        });
         const isTooLarge = response.status === 413 || /too large/i.test(detail);
         setServerError(
           isTooLarge
