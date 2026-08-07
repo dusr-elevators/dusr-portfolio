@@ -26,11 +26,11 @@ class DesignExportSettingsView(APIView):
         return Response(serializer.data)
 
 
-# A little above the ~7 MB base64 budget (MAX_PDF_B64_CHARS) plus room for the
+# A little above the ~17 MB base64 budget (MAX_PDF_B64_CHARS) plus room for the
 # JSON envelope and the other fields. This is the pre-parse guard: it is checked
 # from CONTENT_LENGTH before request.data is touched, so an oversize upload is
 # rejected before DRF's JSONParser reads and parses the whole body into memory.
-MAX_REQUEST_BYTES = 8 * 1024 * 1024
+MAX_REQUEST_BYTES = 18 * 1024 * 1024
 
 
 class DesignLeadSubmissionView(APIView):

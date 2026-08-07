@@ -657,8 +657,8 @@ class DesignLeadSubmissionAPITest(TestCase):
         # Valid base64 (not just an oversize string) so a decode-first implementation
         # can't accidentally pass this test by failing on a decode error instead of
         # the intended pre-decode length check.
-        oversize_pdf_base64 = base64.b64encode(b'A' * 5_400_000).decode()
-        self.assertGreater(len(oversize_pdf_base64), 7_000_000)
+        oversize_pdf_base64 = base64.b64encode(b'A' * 13_000_000).decode()
+        self.assertGreater(len(oversize_pdf_base64), 17_000_000)
 
         response = self.client.post(
             self.url, lead_payload(pdf_base64=oversize_pdf_base64), content_type='application/json',
@@ -672,7 +672,7 @@ class DesignLeadSubmissionAPITest(TestCase):
         # ever touches request.data.
         response = self.client.generic(
             'POST', self.url, data=json.dumps(lead_payload()),
-            content_type='application/json', CONTENT_LENGTH='9000000',
+            content_type='application/json', CONTENT_LENGTH='19000000',
         )
         self.assertEqual(response.status_code, 413)
         self.assertEqual(DesignLeadSubmission.objects.count(), 0)

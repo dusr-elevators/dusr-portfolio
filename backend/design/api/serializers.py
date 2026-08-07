@@ -53,9 +53,10 @@ class DesignExportSettingsSerializer(serializers.ModelSerializer):
         fields = ['delivery_mode']
 
 
-# 5 MB of PDF; base64 inflates by ~4/3, so cap the encoded string a little above that.
-MAX_PDF_BYTES = 5 * 1024 * 1024
-MAX_PDF_B64_CHARS = 7_000_000
+# 12 MB of PDF; base64 inflates by ~4/3, so cap the encoded string a little
+# above that while staying under nginx's 25 MB request limit.
+MAX_PDF_BYTES = 12 * 1024 * 1024
+MAX_PDF_B64_CHARS = 17_000_000
 
 
 class DesignLeadSubmissionSerializer(serializers.ModelSerializer):
