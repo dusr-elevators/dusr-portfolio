@@ -92,6 +92,7 @@ describe('ExportButton delivery modes', () => {
       full_name: 'Sara',
       email: 'sara@example.com',
       mobile: '+966501234567',
+      language: 'en',
       pdf_base64: 'JVBERi0=',
     });
     await waitFor(() => expect(downloadPdfBlobMock).toHaveBeenCalled());

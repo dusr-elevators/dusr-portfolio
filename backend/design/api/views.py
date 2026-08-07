@@ -54,9 +54,10 @@ class DesignLeadSubmissionView(APIView):
         serializer.is_valid(raise_exception=True)
 
         pdf_bytes = base64.b64decode(serializer.validated_data.pop('pdf_base64'))
+        language = serializer.validated_data.pop('language', 'en')
 
         # Save before sending: a mail failure must never cost us the lead.
         lead = DesignLeadSubmission.objects.create(**serializer.validated_data)
-        email_sent = send_design_emails(lead, pdf_bytes)
+        email_sent = send_design_emails(lead, pdf_bytes, language=language)
 
         return Response({'email_sent': email_sent}, status=status.HTTP_201_CREATED)

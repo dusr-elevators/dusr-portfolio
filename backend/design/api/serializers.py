@@ -61,10 +61,14 @@ MAX_PDF_B64_CHARS = 17_000_000
 
 class DesignLeadSubmissionSerializer(serializers.ModelSerializer):
     pdf_base64 = serializers.CharField(write_only=True)
+    language = serializers.ChoiceField(choices=['ar', 'en'], write_only=True, required=False, default='en')
 
     class Meta:
         model = DesignLeadSubmission
-        fields = ['full_name', 'email', 'mobile', 'selections_summary', 'design_url', 'pdf_base64']
+        fields = [
+            'full_name', 'email', 'mobile', 'selections_summary', 'design_url',
+            'pdf_base64', 'language',
+        ]
 
     def validate_pdf_base64(self, value):
         # The real pre-parse guard is the CONTENT_LENGTH check in the view, which

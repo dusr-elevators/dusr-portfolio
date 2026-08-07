@@ -627,6 +627,24 @@ class DesignLeadSubmissionAPITest(TestCase):
         recipients = {m.to[0] for m in mail.outbox}
         self.assertIn('sara@example.com', recipients)
 
+    def test_arabic_submission_sends_customer_email_in_arabic(self):
+        response = self.client.post(
+            self.url,
+            lead_payload(
+                language='ar',
+                design_url='https://dusr.sa/ar/design',
+                selections_summary='الجدران: خشب\nالصوت: نغمة كلاسيكية',
+            ),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        customer = next(m for m in mail.outbox if m.to == ['sara@example.com'])
+        self.assertEqual(customer.subject, 'تصميم كبينة المصعد من دسر')
+        self.assertIn('مرحباً Sara Ahmed', customer.body)
+        self.assertIn('المكونات المختارة', customer.body)
+        self.assertIn('الجدران: خشب', customer.body)
+
     def test_customer_email_carries_the_pdf_attachment(self):
         self.client.post(self.url, lead_payload(), content_type='application/json')
         customer = next(m for m in mail.outbox if m.to == ['sara@example.com'])

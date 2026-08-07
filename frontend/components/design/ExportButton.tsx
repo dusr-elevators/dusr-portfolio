@@ -123,6 +123,7 @@ export default function ExportButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...details,
+          language: lang,
           design_url: window.location.href,
           selections_summary: buildSelectionsSummary(categories, selections, lang),
           pdf_base64: await blobToBase64(blob),
