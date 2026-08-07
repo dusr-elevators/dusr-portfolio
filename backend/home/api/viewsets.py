@@ -1,8 +1,11 @@
 from rest_framework import mixins, viewsets, serializers
 from django.db.models import Prefetch
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework import status
+from rest_framework.response import Response
 
 from home.models import ContactSubmission, InvestmentSubmission, SEOKeyword
+from .emails import send_contact_submission_email
 from pages.models import (
     Category,
     PortfolioItem,
@@ -139,6 +142,20 @@ class ContactSubmissionViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     queryset = ContactSubmission.objects.all()
     serializer_class = ContactSubmissionSerializer
     http_method_names = ['post', 'head', 'options']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        language = serializer.validated_data.pop('language', 'en')
+        submission = serializer.save()
+        email_sent = send_contact_submission_email(submission, language=language)
+
+        headers = self.get_success_headers(serializer.data)
+        data = {
+            **serializer.data,
+            'email_sent': email_sent,
+        }
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class InvestmentSubmissionViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):

@@ -69,14 +69,15 @@ export default function ContactForm({ lang }: ContactFormProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          language: lang,
           first_name: firstName,
           last_name: lastName,
           email: formData.email,
           phone_number: formData.phone,
           project_engineering_department: formData.projectEngineeringDepartment,
           message: [
-            `Company: ${formData.company}`,
-            `Project Engineering Department: ${formData.projectEngineeringDepartment}`,
+            `${lang === 'ar' ? 'الشركة' : 'Company'}: ${formData.company}`,
+            `${lang === 'ar' ? 'القسم الهندسي للمشروع' : 'Project Engineering Department'}: ${formData.projectEngineeringDepartment}`,
             '',
             formData.details,
           ].join('\n'),

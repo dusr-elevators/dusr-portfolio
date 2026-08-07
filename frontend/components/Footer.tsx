@@ -6,7 +6,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, ArrowUp } from 'lucide-react';
+import { Share2, ArrowUp, Mail } from 'lucide-react';
 import Logo from './Logo';
 
 interface FooterProps {
@@ -69,6 +69,14 @@ export default function Footer({ lang }: FooterProps) {
             <Share2 className="w-4 h-4" />
           </button>
         </div>
+
+        <a
+          href="mailto:info@dusr.sa"
+          className="mb-5 inline-flex items-center gap-2 font-sans text-sm text-[#c4c7c7] transition-colors hover:text-[#FF5722]"
+        >
+          <Mail className="h-4 w-4" />
+          <span dir="ltr">info@dusr.sa</span>
+        </a>
 
         {/* Brand Copyright labels with neat text */}
         <p className="font-sans text-xs text-[#c4c7c7] leading-relaxed md:text-right">

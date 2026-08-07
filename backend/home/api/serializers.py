@@ -185,9 +185,14 @@ class JobApplicationSerializer(serializers.ModelSerializer):
 
 
 class ContactSubmissionSerializer(serializers.ModelSerializer):
+    language = serializers.ChoiceField(choices=['ar', 'en'], write_only=True, required=False, default='en')
+
     class Meta:
         model = ContactSubmission
-        fields = '__all__'
+        fields = [
+            'id', 'first_name', 'last_name', 'email', 'phone_number',
+            'project_engineering_department', 'message', 'created_at', 'language',
+        ]
         read_only_fields = ['id', 'created_at']
 
 

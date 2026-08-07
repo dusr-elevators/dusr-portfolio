@@ -1,11 +1,13 @@
 from io import StringIO
+from unittest.mock import patch
 
 from django.apps import apps
+from django.core import mail
 from django.core.management import call_command
 from django.db.models.signals import post_migrate
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
-from home.models import SEOKeyword
+from home.models import ContactSubmission, SEOKeyword
 
 
 class SeedSEOKeywordsCommandTests(TestCase):
@@ -57,3 +59,67 @@ class SeedSEOKeywordsCommandTests(TestCase):
 
         self.assertEqual(SEOKeyword.objects.count(), len(SEOKeyword.PAGE_CHOICES))
         self.assertIn('already exist', stdout.getvalue())
+
+
+def contact_payload(**overrides):
+    payload = {
+        'first_name': 'Ahmad',
+        'last_name': 'Kahil',
+        'email': 'ahmad@example.com',
+        'phone_number': '+966539705301',
+        'project_engineering_department': 'Commercial Development',
+        'message': 'Company: Dusr\n\nNeed elevator maintenance.',
+    }
+    payload.update(overrides)
+    return payload
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    DEFAULT_FROM_EMAIL='Dusr <info@dusr.sa>',
+    CONTACT_EMAIL='info@dusr.sa',
+)
+class ContactSubmissionAPITest(TestCase):
+    url = '/api/contact-submissions/'
+
+    def setUp(self):
+        mail.outbox = []
+
+    def test_valid_submission_saves_and_emails_contact_inbox(self):
+        response = self.client.post(self.url, contact_payload(), content_type='application/json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(response.json()['email_sent'])
+        self.assertEqual(ContactSubmission.objects.count(), 1)
+
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ['info@dusr.sa'])
+        self.assertEqual(message.reply_to, ['ahmad@example.com'])
+        self.assertIn('New contact request', message.subject)
+        self.assertIn('Need elevator maintenance.', message.body)
+
+    def test_arabic_submission_sends_arabic_notification(self):
+        response = self.client.post(
+            self.url,
+            contact_payload(
+                language='ar',
+                project_engineering_department='تطوير تجاري',
+                message='الشركة: دسر\n\nنحتاج صيانة للمصعد.',
+            ),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        message = mail.outbox[0]
+        self.assertIn('طلب تواصل جديد', message.subject)
+        self.assertIn('تم استلام طلب تواصل جديد', message.body)
+        self.assertIn('نحتاج صيانة للمصعد.', message.body)
+
+    def test_email_failure_still_saves_submission(self):
+        with patch('home.api.emails.EmailMessage.send', side_effect=OSError('smtp down')):
+            response = self.client.post(self.url, contact_payload(), content_type='application/json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertFalse(response.json()['email_sent'])
+        self.assertEqual(ContactSubmission.objects.count(), 1)
