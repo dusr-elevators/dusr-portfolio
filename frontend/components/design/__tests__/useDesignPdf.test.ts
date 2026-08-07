@@ -16,6 +16,7 @@ vi.mock('html2canvas', () => ({
 
 vi.mock('jspdf', () => ({
   jsPDF: class {
+    constructor(public options?: unknown) {}
     internal = { pageSize: { getWidth: () => 210, getHeight: () => 297 } };
     addImage = addImageMock;
     output = outputMock;
@@ -25,7 +26,7 @@ vi.mock('jspdf', () => ({
 import { buildDesignPdf } from '../useDesignPdf';
 
 function fakeCanvas(width: number, height: number) {
-  return { width, height, toDataURL: () => 'data:image/png;base64,AAA' };
+  return { width, height, toDataURL: (type?: string) => `data:${type ?? 'image/png'};base64,AAA` };
 }
 
 describe('buildDesignPdf', () => {
@@ -50,10 +51,10 @@ describe('buildDesignPdf', () => {
     expect(html2canvasMock).toHaveBeenCalledTimes(2);
     expect(html2canvasMock.mock.calls[0][0]).toBe(canvasEl);
     expect(html2canvasMock.mock.calls[1][0]).toBe(printEl);
-    expect(setProjectionSrc).toHaveBeenCalledWith('data:image/png;base64,AAA');
+    expect(setProjectionSrc).toHaveBeenCalledWith('data:image/jpeg;base64,AAA');
   });
 
-  it('captures both canvases with the exact PDF-clarity options', async () => {
+  it('captures both canvases with email-safe PDF options', async () => {
     await buildDesignPdf({
       canvasEl: document.createElement('div'),
       getPrintEl: () => document.createElement('div'),
@@ -61,8 +62,7 @@ describe('buildDesignPdf', () => {
       settleMs: 0,
     });
 
-    // A dropped scale:2 would silently halve the exported PDF's resolution.
-    const expectedOptions = { useCORS: true, backgroundColor: '#ffffff', scale: 2 };
+    const expectedOptions = { useCORS: true, backgroundColor: '#ffffff', scale: 1.4 };
     expect(html2canvasMock.mock.calls[0][1]).toEqual(expectedOptions);
     expect(html2canvasMock.mock.calls[1][1]).toEqual(expectedOptions);
   });
@@ -79,7 +79,7 @@ describe('buildDesignPdf', () => {
     });
 
     expect(addImageMock).toHaveBeenCalledWith(
-      'data:image/png;base64,AAA', 'PNG', 0, 0, 210, 297,
+      'data:image/jpeg;base64,AAA', 'JPEG', 0, 0, 210, 297,
     );
   });
 
@@ -95,7 +95,7 @@ describe('buildDesignPdf', () => {
     });
 
     expect(addImageMock).toHaveBeenCalledWith(
-      'data:image/png;base64,AAA', 'PNG', 0, 0, 210, 105,
+      'data:image/jpeg;base64,AAA', 'JPEG', 0, 0, 210, 105,
     );
   });
 

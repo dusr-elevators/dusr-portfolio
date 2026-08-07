@@ -14,6 +14,9 @@ export interface BuildDesignPdfArgs {
   settleMs?: number;
 }
 
+const PDF_CAPTURE_SCALE = 1.4;
+const PDF_JPEG_QUALITY = 0.82;
+
 export async function buildDesignPdf({
   canvasEl,
   getPrintEl,
@@ -31,9 +34,9 @@ export async function buildDesignPdf({
   const projCanvas = await html2canvas(canvasEl, {
     useCORS: true,
     backgroundColor: '#ffffff',
-    scale: 2,
+    scale: PDF_CAPTURE_SCALE,
   });
-  setProjectionSrc(projCanvas.toDataURL('image/png'));
+  setProjectionSrc(projCanvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY));
 
   // Step 2: let the print layout re-render with the injected image
   await new Promise(r => setTimeout(r, settleMs));
@@ -44,16 +47,16 @@ export async function buildDesignPdf({
   const printCanvas = await html2canvas(printEl, {
     useCORS: true,
     backgroundColor: '#ffffff',
-    scale: 2,
+    scale: PDF_CAPTURE_SCALE,
   });
 
   // Step 4: insert into an A4 PDF
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const ratio = printCanvas.height / printCanvas.width;
   const imgH = Math.min(pageW * ratio, pageH);
-  pdf.addImage(printCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, imgH);
+  pdf.addImage(printCanvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY), 'JPEG', 0, 0, pageW, imgH);
 
   return pdf.output('blob');
 }
@@ -70,9 +73,17 @@ export function downloadPdfBlob(blob: Blob, filename = 'dusr-elevator-design.pdf
 
 /** Bare base64 for the JSON payload — no `data:...;base64,` prefix. */
 export async function blobToBase64(blob: Blob): Promise<string> {
-  const buffer = await blob.arrayBuffer();
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read PDF blob.'));
+    reader.onloadend = () => {
+      if (typeof reader.result !== 'string') {
+        reject(new Error('Could not encode PDF blob.'));
+        return;
+      }
+      const commaIndex = reader.result.indexOf(',');
+      resolve(commaIndex >= 0 ? reader.result.slice(commaIndex + 1) : reader.result);
+    };
+    reader.readAsDataURL(blob);
+  });
 }

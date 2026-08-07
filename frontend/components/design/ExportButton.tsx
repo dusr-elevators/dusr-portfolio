@@ -26,6 +26,16 @@ export function buildSelectionsSummary(
     .join('\n');
 }
 
+async function readErrorDetail(response: Response): Promise<string> {
+  try {
+    const payload = await response.json();
+    const detail = payload.detail ?? payload.pdf_base64 ?? payload.non_field_errors;
+    return Array.isArray(detail) ? detail.join(' ') : String(detail ?? '');
+  } catch {
+    return '';
+  }
+}
+
 interface ExportButtonProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   categories: ComponentCategory[];
@@ -120,10 +130,14 @@ export default function ExportButton({
       });
 
       if (!response.ok) {
+        const detail = await readErrorDetail(response);
+        const isTooLarge = response.status === 413 || /too large/i.test(detail);
         setServerError(
-          response.status === 429
-            ? isAr ? 'محاولات كثيرة. يرجى المحاولة لاحقاً.' : 'Too many attempts. Please try again later.'
-            : isAr ? 'تعذر إرسال التصميم. يرجى المحاولة مرة أخرى.' : 'We could not send your design. Please try again.',
+          isTooLarge
+            ? isAr ? 'حجم ملف التصميم كبير جداً. يرجى المحاولة مرة أخرى.' : 'The design PDF is too large. Please try again.'
+            : response.status === 429
+              ? isAr ? 'محاولات كثيرة. يرجى المحاولة لاحقاً.' : 'Too many attempts. Please try again later.'
+              : isAr ? 'تعذر إرسال التصميم. يرجى المحاولة مرة أخرى.' : 'We could not send your design. Please try again.',
         );
         return;
       }
@@ -148,7 +162,8 @@ export default function ExportButton({
       // for another multi-second capture.
       setProjectionSrc('');
       pdfPromiseRef.current = null;
-    } catch {
+    } catch (error) {
+      console.error('Design lead submission failed', error);
       setServerError(
         isAr ? 'تعذر إرسال التصميم. يرجى المحاولة مرة أخرى.' : 'We could not send your design. Please try again.',
       );
